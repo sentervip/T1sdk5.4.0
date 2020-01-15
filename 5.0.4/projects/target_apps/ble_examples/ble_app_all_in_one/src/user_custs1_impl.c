@@ -34,6 +34,9 @@
 struct app_proj_env_tag user_app_env __attribute__((section("retention_mem_area0"),zero_init)); //@RETENTION MEMORY
 
 
+static uint16_t user_get_adc1(void);
+static uint16_t user_get_adc2(void);
+static uint8_t user_hex2utf8(int16_t in,uint8_t dot,uint8_t *out);
 /*
  * DEFINES
  ****************************************************************************************
@@ -49,11 +52,12 @@ struct app_proj_env_tag user_app_env __attribute__((section("retention_mem_area0
  ****************************************************************************************
  */
 
-ke_msg_id_t timer_used;
-const uint16_t notes[APP_NOTES_NUM] =
-{
-    1046,987,767,932,328,880,830,609,783,991,739,989,698,456,659,255,622,254,587,554,365,523,251,493,466,440
-};
+ke_msg_id_t timer_used = 0xFFFF;
+uint16_t waringTmp = 3880;
+//const uint16_t notes[APP_NOTES_NUM] =
+//{
+//    1046,987,767,932,328,880,830,609,783,991,739,989,698,456,659,255,622,254,587,554,365,523,251,493,466,440
+//};
 
 /*
  * LOCAL FUNCTIONS DECLARATION
@@ -67,7 +71,9 @@ static void user_app_set_button_event(uint8_t);
 static void user_app_disable_button(void);
 static void user_app_disable_button(void);
 static void user_app_button_press_cb(void);
-static void user_app_get_adcval2_val(void);
+static void user_app_get_bat_val(void);
+//void user_app_disable_led(void);
+//void user_app_enable_led(void);
 
 /*
  * FUNCTION DEFINITIONS
@@ -82,19 +88,25 @@ void user_custs1_ctrl_wr_ind_handler(ke_msg_id_t const msgid,
     uint8_t val = 0;
     memcpy(&val, &param->value[0], param->length);
 
-    if (val == CUSTS1_CP_CMD_ADC_VAL1_ENABLE)
+    if (val == 0)
     {
-        timer_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_adcval1_timer_cb_handler);
+		/*if (timer_used == 0xFFFF)
+		{
+			timer_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_adcval1_timer_cb_handler);
+		}*/
+//		arch_set_deep_sleep();			
+		arch_set_extended_sleep();	   // lewis 	
     }
-    else if (val == CUSTS1_CP_CMD_ADC_VAL1_DISABLE)
+    else if (val == 1)
     {
-        if (timer_used != 0xFFFF)
+        /*if (timer_used != 0xFFFF)
         {
             app_easy_timer_cancel(timer_used);
             timer_used = 0xFFFF;
-        }
+        }*/
+		arch_set_extended_sleep();
     }
-    else if (val == CUSTS1_CP_CMD_PWM_ENABLE)
+    if (val == CUSTS1_CP_CMD_PWM_ENABLE)
     {
         user_app_enable_pwm();
     }
@@ -102,7 +114,7 @@ void user_custs1_ctrl_wr_ind_handler(ke_msg_id_t const msgid,
     {
         user_app_disable_pwm();
     }
-    else if (val == CUSTS1_CP_CMD_ADC_VAL_2_ENABLE)
+    /*else if (val == CUSTS1_CP_CMD_ADC_VAL_2_ENABLE)
     {
         user_app_env.custs1_adcval2_enabled = 1;
         user_app_get_adcval2_val();
@@ -110,7 +122,7 @@ void user_custs1_ctrl_wr_ind_handler(ke_msg_id_t const msgid,
     else if (val == CUSTS1_CP_CMD_ADC_VAL_2_DISABLE)
     {
         user_app_env.custs1_adcval2_enabled = 0;
-    }
+    }*/
 }
 
 void user_custs1_led_wr_ind_handler(ke_msg_id_t const msgid,
@@ -118,42 +130,48 @@ void user_custs1_led_wr_ind_handler(ke_msg_id_t const msgid,
                                      ke_task_id_t const dest_id,
                                      ke_task_id_t const src_id)
 {
-    uint8_t val = 0;
-    memcpy(&val, &param->value[0], param->length);
+    uint8_t val = param->value[0];
+    //memcpy(&val, &param->value[0], param->length);
 
     if (val == CUSTS1_LED_ON)
     {
-        GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);
-        arch_force_active_mode();
+        user_app_enable_led();
+        //arch_force_active_mode();
     }
     else if (val == CUSTS1_LED_OFF)
     {
-        GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
-        arch_restore_sleep_mode();
+        user_app_disable_led();
+        //arch_restore_sleep_mode();
     }
 }
-
+/*
 void user_custs1_long_val_cfg_ind_handler(ke_msg_id_t const msgid,
                                            struct custs1_val_write_ind const *param,
                                            ke_task_id_t const dest_id,
                                            ke_task_id_t const src_id)
 {
 }
+*/
 
 void user_custs1_long_val_wr_ind_handler(ke_msg_id_t const msgid,
                                           struct custs1_val_write_ind const *param,
                                           ke_task_id_t const dest_id,
                                           ke_task_id_t const src_id)
 {
+	uint8_t val[6];
+	memcpy(val, &param->value[0], param->length);
+	waringTmp = (val[0] - 0x30)*1000 + (val[1] - 0x30)*100 + \
+				(val[3] - 0x30)*10 + (val[4] - 0x30);
+	
 }
-
+/*
 void user_custs1_long_val_ntf_cfm_handler(ke_msg_id_t const msgid,
                                            struct custs1_val_write_ind const *param,
                                            ke_task_id_t const dest_id,
                                            ke_task_id_t const src_id)
 {
 }
-
+*/
 void user_custs1_adc_val_1_cfg_ind_handler(ke_msg_id_t const msgid,
                                             struct custs1_val_write_ind const *param,
                                             ke_task_id_t const dest_id,
@@ -181,7 +199,7 @@ void user_custs1_button_ntf_cfm_handler(ke_msg_id_t const msgid,
                                          ke_task_id_t const src_id)
 {
 }
-
+/*
 void user_custs1_indicateable_cfg_ind_handler(ke_msg_id_t const msgid,
                                                struct custs1_val_write_ind const *param,
                                                ke_task_id_t const dest_id,
@@ -195,7 +213,7 @@ void user_custs1_indicateable_ind_cfm_handler(ke_msg_id_t const msgid,
                                                ke_task_id_t const src_id)
 {
 }
-
+*/
 void user_app_adcval1_timer_cb_handler()
 {
     struct custs1_val_ntf_req* req = KE_MSG_ALLOC_DYN(CUSTS1_VAL_NTF_REQ,
@@ -205,13 +223,28 @@ void user_app_adcval1_timer_cb_handler()
                                                       DEF_CUST1_ADC_VAL_1_CHAR_LEN);
 
     // ADC value to be sampled
-    static uint16_t sample;
-    sample = (sample <= 0xffff) ? (sample + 1) : 0;
-
+    //static uint8_t kk =0;
+	uint8_t data[6] = {0,0,0,0,0,0},len;
+	static uint16_t tmp1 = 0;
+	float tmp = 0;
+	uint16_t sample = user_get_adc1();
+	tmp = sample * 4.378f;
+	if(tmp1 == 0)
+	{
+		tmp1 = tmp;
+	}
+	tmp -= tmp1;	
+	tmp1 += tmp *0.2f;
+	
+	/*uint16_t adc_sample = 3751+kk;//user_get_adc1();
+	if(++kk > 100)
+		kk = 0;*/
+	len = user_hex2utf8(tmp1,2,data);
+	
     req->conhdl = app_env->conhdl;
     req->handle = CUST1_IDX_ADC_VAL_1_VAL;
-    req->length = DEF_CUST1_ADC_VAL_1_CHAR_LEN;
-    memcpy(req->value, &sample, DEF_CUST1_ADC_VAL_1_CHAR_LEN);
+    req->length = len;
+    memcpy(req->value, data, len);
 
     ke_msg_send(req);
 
@@ -221,7 +254,23 @@ void user_app_adcval1_timer_cb_handler()
         timer_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_adcval1_timer_cb_handler);
     }
 }
-
+void user_app_pwm_timer_cb_handler()
+{
+	static uint8_t i =0;
+	if(i == 0)
+	{
+		i = 1;
+		user_app_enable_pwm();
+		GPIO_SetActive( GPIO_PORT_1, GPIO_PIN_0);//led on
+	}
+	else
+	{
+		i = 0;
+		 user_app_disable_pwm();
+		GPIO_SetInactive( GPIO_PORT_1, GPIO_PIN_0);//led off
+	}
+	app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
+}
 /**
  ****************************************************************************************
  * @brief Disable pwm timer
@@ -235,9 +284,13 @@ static void user_app_disable_pwm(void)
         user_app_env.custs1_pwm_enabled = 0;
 
         arch_restore_sleep_mode();
-
+#if 0
         timer0_stop();
         set_tmr_enable(CLK_PER_REG_TMR_DISABLED);
+#endif
+		timer2_stop();
+		timer2_enable(TRIPLE_PWM_DISABLED);	
+		set_tmr_enable(CLK_PER_REG_TMR_DISABLED);		
     }
 }
 
@@ -246,7 +299,7 @@ static void user_app_disable_pwm(void)
  * @brief Tiemer callback function. Update PWM settings
  * @return void
  ****************************************************************************************
-*/
+
 static void user_app_pwm_callback_function(void)
 {
     static uint8_t change_delay = 0;
@@ -262,7 +315,7 @@ static void user_app_pwm_callback_function(void)
     }
     change_delay++;
 }
-
+*/
 /**
  ****************************************************************************************
  * @brief Enable pwm timer
@@ -271,6 +324,7 @@ static void user_app_pwm_callback_function(void)
 */
 static void user_app_enable_pwm(void)
 {
+#define PWM_FREQUENCY     400	
     if(!user_app_env.custs1_pwm_enabled)
     {
         user_app_env.custs1_pwm_enabled = 1;
@@ -282,19 +336,42 @@ static void user_app_enable_pwm(void)
         set_tmr_enable(CLK_PER_REG_TMR_ENABLED);
         // Set clock division
         set_tmr_div(CLK_PER_REG_TMR_DIV_8);
-        // Init timer 0
-        timer0_init(TIM0_CLK_FAST, PWM_MODE_ONE, TIM0_CLK_NO_DIV);
-        // Set timing parameters
-        timer0_set(APP_PWM_ON, APP_PWM_HIGH, APP_PWM_LOW);
-        // Register IRQ callback
-        timer0_register_callback(user_app_pwm_callback_function);
-        // Enable IRQ
-        timer0_enable_irq();
-        // Start timer
-        timer0_start();
+#if 0		
+//        // Init timer 0
+//        timer0_init(TIM0_CLK_FAST, PWM_MODE_ONE, TIM0_CLK_NO_DIV);
+//        // Set timing parameters
+//        timer0_set(APP_PWM_ON, APP_PWM_HIGH, APP_PWM_LOW);
+//        // Register IRQ callback
+//        timer0_register_callback(user_app_pwm_callback_function);
+//        // Enable IRQ
+//        timer0_enable_irq();
+//        // Start timer
+//        timer0_start();
+#endif
+/**/
+    timer2_enable(TRIPLE_PWM_ENABLED);      
+    timer2_set_hw_pause(HW_CAN_NOT_PAUSE_PWM_2_3_4);
+    timer2_set_sw_pause(HW_CAN_NOT_PAUSE_PWM_2_3_4);
+	timer2_set_pwm_frequency(PWM_FREQUENCY);
+	timer2_set_pwm2_duty_cycle(PWM_FREQUENCY >> 2 );//& BIT_MASK
+	timer2_enable(TRIPLE_PWM_ENABLED);
     }
 }
-
+void user_app_disable_led(void)
+{
+	arch_restore_sleep_mode();
+	GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
+}
+void user_app_enable_led(void)
+{
+	// Disable sleep mode
+	arch_force_active_mode();
+	GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);
+}
+uint8_t user_app_get_led_status(void)
+{
+	return GPIO_GetPinStatus(GPIO_LED_PORT, GPIO_LED_PIN);
+}
 /**
  ****************************************************************************************
  * @brief Set button event configuration
@@ -303,7 +380,7 @@ static void user_app_enable_pwm(void)
 */
 static void user_app_set_button_event(uint8_t next_event)
 {
-
+	
     wkupct_register_callback(user_app_button_press_cb);
 
     wkupct_enable_irq(WKUPCT_PIN_SELECT(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN),
@@ -369,14 +446,16 @@ static void user_app_button_press_cb(void)
  * @return void
  ****************************************************************************************
 */
-static void user_app_get_adcval2_val(void)
+static void user_app_get_bat_val(void)
 {
     if(user_app_env.custs1_adcval2_enabled)
     {
         uint16_t adc_sample;
-
-        adc_calibrate();
-        adc_sample = (uint16_t)adc_get_vbat_sample(false);
+		uint8_t data[6] = {0,0,0,0,0,0},len;
+        //adc_calibrate();
+        //adc_sample = (uint16_t)adc_get_vbat_sample(false);
+		adc_sample = user_get_adc2();
+		len = user_hex2utf8(adc_sample,3,data);
 
         struct custs1_val_set_req *req = KE_MSG_ALLOC_DYN(CUSTS1_VAL_SET_REQ,
                                                           TASK_CUSTS1,
@@ -386,13 +465,127 @@ static void user_app_get_adcval2_val(void)
 
        req->conhdl = app_env->conhdl;
        req->handle = CUST1_IDX_ADC_VAL_2_VAL;
-       req->length = DEF_CUST1_ADC_VAL_2_CHAR_LEN;
-       memcpy(req->value, &adc_sample, DEF_CUST1_ADC_VAL_1_CHAR_LEN);
+       req->length = len;
+       memcpy(req->value, data, len);
 
        ke_msg_send(req);
     }
 }
 
+static void user_app_get_adj_val(void)
+{       
+		uint16_t adj = waringTmp;//3750; 
+		uint8_t data[6] = {0,0,0,0,0,0},len;
+        //adc_calibrate();
+        //adc_sample = (uint16_t)adc_get_vbat_sample(false);
+		//adc_sample = user_get_adc2();
+		//len = user_hex2utf8(adj,2,data);
+		
+        struct custs1_val_set_req *req = KE_MSG_ALLOC_DYN(CUSTS1_VAL_SET_REQ,
+                                                          TASK_CUSTS1,
+                                                          TASK_APP,
+                                                          custs1_val_set_req,
+                                                          DEF_CUST1_LONG_VALUE_CHAR_LEN);
+
+       req->conhdl = app_env->conhdl;
+       req->handle = CUST1_IDX_LONG_VALUE_VAL;
+       req->length = user_hex2utf8(adj,2,data);
+       memcpy(req->value, data, req->length);
+
+       ke_msg_send(req);
+}
+uint16_t swapInt16(uint16_t value)  
+{  
+	return  ((value & 0x00FF) << 8) |  
+			((value & 0xFF00) >> 8) ;  
+}
+static void user_periph_init(void)
+{
+	adc_calibrate();
+}
+static uint16_t user_get_adc_common(uint16_t ch,uint16_t attn)
+{
+    uint32_t adc_sample, adc_sample2;
+	uint16_t attenuation = 0;
+	
+	if(attn == 3)
+	{
+		attenuation = GP_ADC_ATTN3X;
+	}
+	
+    adc_init(GP_ADC_SE, GP_ADC_SIGN, attenuation);
+    adc_usDelay(20);
+
+    adc_enable_channel(ch);
+
+    adc_sample = adc_get_sample();
+    adc_usDelay(1);
+    adc_init(GP_ADC_SE, 0, attenuation);
+
+    adc_enable_channel(ch);
+
+    adc_sample2 = adc_get_sample();
+    //We have to divide the following result by 2 if
+    //the 10 bit accuracy is enough
+    adc_sample = (adc_sample2 + adc_sample) >> 1;
+    //adc_disable();
+
+    return adc_sample;
+}
+static uint8_t user_hex2utf8(int16_t in,uint8_t dot,uint8_t *out)
+{
+	uint8_t i = 0,m,tmp[6] = {0,0,0,0,0,0};	
+	tmp[i++] = in / 10000 + 0x30;
+	if(dot == 4)tmp[i++] = '.';	
+	tmp[i++] = in % 10000 / 1000 + 0x30;
+	if(dot == 3)tmp[i++] = '.';	
+	tmp[i++] = in % 1000 / 100 + 0x30;
+	if(dot == 2)tmp[i++] = '.';	
+	tmp[i++] = in % 100 / 10 + 0x30;
+	if(dot == 1)tmp[i++] = '.';	
+	tmp[i++] = in % 10 + 0x30;
+	
+	for(m = 0;m<5;m++)
+	{
+		if((tmp[m] == 0x30) && (tmp[m+1] != 0x30))
+		{
+			break;
+		}
+	}
+	for(int j =m + 1,i=0;j<(6-m);j++,i++)
+	{
+		out[i] = tmp[j];
+	}
+	return i;
+}
+#define ADC_RESOLUTION      1023
+#define ADC_ATTENUATION_1    1
+#define ADC_ATTENUATION_3    3
+#define ADC_VOLTAGE_REFER  1200  //mv	
+static uint16_t user_get_adc1(void)
+{
+	char printfBuf[8] = {0};
+	uint16_t adc_sample, adc_sample0;
+
+	adc_sample = user_get_adc_common(ADC_CHANNEL_P01,ADC_ATTENUATION_1);
+	
+	adc_sample0 = (unsigned int)((float)(adc_sample  * ADC_ATTENUATION_1 * ADC_VOLTAGE_REFER) / ADC_RESOLUTION);
+//	sprintf(printfBuf,"%d",adc_sample);
+	//adc_sample0 = swapInt16(adc_sample0);
+	return adc_sample0;
+}
+static uint16_t user_get_adc2(void)
+{
+    uint32_t adc_sample, adc_sample0;	
+//	char printfBuf[8] = {0};
+
+	adc_sample = user_get_adc_common(ADC_CHANNEL_VBAT3V,ADC_ATTENUATION_3);
+	
+	adc_sample0 = (unsigned int)((float)(adc_sample  * ADC_ATTENUATION_3 * ADC_VOLTAGE_REFER) / ADC_RESOLUTION);
+	//adc_sample0 = swapInt16(adc_sample0);
+	//	sprintf(printfBuf,"%d",adc_sample);
+	return adc_sample0;	
+}
 /**
  ****************************************************************************************
  * @brief Enable peripherals used by application.
@@ -401,10 +594,17 @@ static void user_app_get_adcval2_val(void)
 */
 void user_app_enable_periphs(void)
 {
+	user_periph_init();
+	
     // Update button state characteristic
     user_app_button_press_cb();
     // Get initial ADC value if enabled
-    user_app_get_adcval2_val();
+    
+	timer_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_adcval1_timer_cb_handler);
+//	app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
+	user_app_env.custs1_adcval2_enabled = 1;
+	user_app_get_bat_val();
+	user_app_get_adj_val();
 }
 
 /**
@@ -417,4 +617,5 @@ void user_app_disable_periphs(void)
 {
     user_app_disable_pwm();
     user_app_disable_button();
+	//user_app_disable_led();
 }

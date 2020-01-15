@@ -63,10 +63,10 @@
  */
 
 /// Manufacturer Name (up to 18 chars)
-#define APP_DIS_MANUFACTURER_NAME       ("Dialog Semi")
+#define APP_DIS_MANUFACTURER_NAME       ("PTM")
 #define APP_DIS_MANUFACTURER_NAME_LEN   (11)
 /// Model Number String (up to 18 chars)
-#define APP_DIS_MODEL_NB_STR            ("DA1458x")
+#define APP_DIS_MODEL_NB_STR            ("PTM_V100")
 #define APP_DIS_MODEL_NB_STR_LEN        (7)
 /// System ID - LSB -> MSB (FIXME)
 #define APP_DIS_SYSTEM_ID               ("\x12\x34\x56\xFF\xFE\x9A\xBC\xDE")

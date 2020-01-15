@@ -19,6 +19,6 @@
 #ifndef USER_CONFIG_SW_VER_H_
 #define USER_CONFIG_SW_VER_H_
 
-#define DA14580_REFDES_SW_VERSION           "x.y.z"       // value defined by user
+#define DA14580_REFDES_SW_VERSION           "1.0.7"       // value defined by user
 
 #endif

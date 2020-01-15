@@ -48,7 +48,7 @@
 #define EXCLUDE_DLG_GAP             (0)
 #define EXCLUDE_DLG_TIMER           (0)
 #define EXCLUDE_DLG_MSG             (0)
-#define EXCLUDE_DLG_SEC             (0)
+#define EXCLUDE_DLG_SEC             (1)  // no used by aizj
 #define EXCLUDE_DLG_DISS            (0)
 #define EXCLUDE_DLG_PROXR           (1)
 #define EXCLUDE_DLG_BASS            (1)

@@ -90,4 +90,6 @@ void periph_init(void)
 
    // Enable the pads
     SetBits16(SYS_CTRL_REG, PAD_LATCH_EN, 1);
+	
+//	arch_printf("periph_init.\r\n");
 }

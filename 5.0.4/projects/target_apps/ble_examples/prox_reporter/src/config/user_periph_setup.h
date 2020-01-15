@@ -71,10 +71,10 @@
     #define SPI_CLK_GPIO_PIN    GPIO_PIN_0
 
     #define SPI_DO_GPIO_PORT    GPIO_PORT_0
-    #define SPI_DO_GPIO_PIN     GPIO_PIN_6
+    #define SPI_DO_GPIO_PIN     GPIO_PIN_5
 
     #define SPI_DI_GPIO_PORT    GPIO_PORT_0
-    #define SPI_DI_GPIO_PIN     GPIO_PIN_5
+    #define SPI_DI_GPIO_PIN     GPIO_PIN_6
 #else // DA14583
     #define SPI_EN_GPIO_PORT    GPIO_PORT_2
     #define SPI_EN_GPIO_PIN     GPIO_PIN_3

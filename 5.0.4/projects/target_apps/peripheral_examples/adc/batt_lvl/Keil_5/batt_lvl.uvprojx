@@ -10,18 +10,19 @@
       <TargetName>batt_lvl</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
+      <pCCUsed>5060020::V5.06 (build 20)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
-          <Device>ARMCM0</Device>
-          <Vendor>ARM</Vendor>
-          <PackID>ARM.CMSIS.4.3.0</PackID>
-          <PackURL>http://www.keil.com/pack/</PackURL>
-          <Cpu>IROM(0x0,0x0) IRAM(0x0,0x0) CPUTYPE("Cortex-M0") CLOCK(12000000) ESEL ELITTLE</Cpu>
+          <Device>DA14583</Device>
+          <Vendor>Dialog Semiconductor</Vendor>
+          <PackID>DialogSemiconductor.DA1458x_DFP.1.0.13</PackID>
+          <PackURL>https://s3.eu-west-2.amazonaws.com/lpccs-docs.dialog-semiconductor.com/CMSIS</PackURL>
+          <Cpu>CPUTYPE("Cortex-M0") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0NEW_DEVICE -FS00 -FL040000 -FP0($$Device:ARMCM0$Device\ARM\Flash\NEW_DEVICE.FLM))</FlashDriverDll>
+          <FlashDriverDll></FlashDriverDll>
           <DeviceId>0</DeviceId>
-          <RegisterFile>$$Device:ARMCM0$Device\ARM\ARMCM0\Include\ARMCM0.h</RegisterFile>
+          <RegisterFile>$$Device:DA14583$Device\Include\DA14583.h</RegisterFile>
           <MemoryEnv></MemoryEnv>
           <Cmp></Cmp>
           <Asm></Asm>
@@ -31,7 +32,7 @@
           <SLE66CMisc></SLE66CMisc>
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
-          <SFDFile>$$Device:ARMCM0$Device\ARM\SVD\ARMCM0.svd</SFDFile>
+          <SFDFile>$$Device:DA14583$Device\SVD\DA14583.svd</SFDFile>
           <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
@@ -218,19 +219,20 @@
             <mOS>0</mOS>
             <uocRom>0</uocRom>
             <uocRam>0</uocRam>
-            <hadIROM>1</hadIROM>
-            <hadIRAM>1</hadIRAM>
+            <hadIROM>0</hadIROM>
+            <hadIRAM>0</hadIRAM>
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
             <RvdsVP>0</RvdsVP>
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
-            <StupSel>8</StupSel>
+            <StupSel>0</StupSel>
             <useUlib>1</useUlib>
-            <EndSel>1</EndSel>
+            <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
-            <RoSelD>3</RoSelD>
-            <RwSelD>3</RwSelD>
+            <nSecure>0</nSecure>
+            <RoSelD>0</RoSelD>
+            <RwSelD>0</RwSelD>
             <CodeSel>0</CodeSel>
             <OptFeed>0</OptFeed>
             <NoZi1>0</NoZi1>
@@ -281,13 +283,13 @@
               </Ocm6>
               <IRAM>
                 <Type>0</Type>
-                <StartAddress>0x20000000</StartAddress>
-                <Size>0x20000</Size>
+                <StartAddress>0x0</StartAddress>
+                <Size>0x0</Size>
               </IRAM>
               <IROM>
                 <Type>1</Type>
                 <StartAddress>0x0</StartAddress>
-                <Size>0x40000</Size>
+                <Size>0x0</Size>
               </IROM>
               <XRAM>
                 <Type>0</Type>
@@ -365,11 +367,13 @@
             <useXO>0</useXO>
             <v6Lang>0</v6Lang>
             <v6LangP>0</v6LangP>
+            <vShortEn>0</vShortEn>
+            <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls>--thumb -c</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\include;..\..\..\..\..\..\sdk\platform\arch;..\..\..\..\..\..\sdk\platform\arch\compiler\rvds;..\..\..\..\..\..\sdk\platform\arch\ll\rvds;..\..\..\..\..\..\sdk\platform\driver\reg;..\..\..\..\..\..\sdk\platform\include;..\..\..\..\..\..\sdk\platform\driver\gpio;..\..\..\..\..\..\sdk\platform\driver\adc;..\..\..\..\..\..\sdk\platform\driver\battery;..\..\..\..\..\..\sdk\app_modules\api;..\..\..\..\..\..\sdk\ble_stack\rwble_hl\rwble_hl;..\..\..\shared\common_uart;..\..\..\..\..\..\sdk\platform\driver\uart</IncludePath>
+              <IncludePath>..\include;..\..\..\..\..\..\sdk\platform\arch;..\..\..\..\..\..\sdk\platform\arch\compiler\rvds;..\..\..\..\..\..\sdk\platform\arch\ll\rvds;..\..\..\..\..\..\sdk\platform\driver\reg;..\..\..\..\..\..\sdk\platform\include;..\..\..\..\..\..\sdk\platform\driver\gpio;..\..\..\..\..\..\sdk\platform\driver\adc;..\..\..\..\..\..\sdk\platform\driver\battery;..\..\..\..\..\..\sdk\app_modules\api;..\..\..\..\..\..\sdk\ble_stack\rwble_hl\rwble_hl;..\..\..\shared\common_uart;..\..\..\..\..\..\sdk\platform\driver\uart;..\..\..\..\..\..\sdk\platform\driver\pwm</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -451,6 +455,11 @@
               <FileName>uart2.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\..\..\sdk\platform\driver\uart\uart2.c</FilePath>
+            </File>
+            <File>
+              <FileName>pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\..\sdk\platform\driver\pwm\pwm.c</FilePath>
             </File>
           </Files>
         </Group>

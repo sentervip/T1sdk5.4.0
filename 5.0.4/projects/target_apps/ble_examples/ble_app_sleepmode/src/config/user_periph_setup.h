@@ -37,7 +37,7 @@
 //*** <<< Use Configuration Wizard in Context Menu >>> ***
 
 // <o> DK selection <0=> As in da1458x_periph_setup.h <1=> Basic <2=> Pro <3=> Expert
-#define HW_CONFIG (2)
+#define HW_CONFIG (4)
 
 #define HW_CONFIG_BASIC_DK  ((HW_CONFIG==0 && SDK_CONFIG==1) || HW_CONFIG==1)
 #define HW_CONFIG_PRO_DK    ((HW_CONFIG==0 && SDK_CONFIG==2) || HW_CONFIG==2)
@@ -54,6 +54,7 @@
 #define I2C_SPEED_MODE    I2C_FAST        // 1: standard mode (100 kbits/s), 2: fast mode (400 kbits/s)
 #define I2C_ADDRESS_MODE  I2C_7BIT_ADDR   // 0: 7-bit addressing, 1: 10-bit addressing
 #define I2C_ADDRESS_SIZE  I2C_2BYTES_ADDR // 0: 8-bit memory address, 1: 16-bit memory address, 3: 24-bit memory address
+#define I2C_SLAVE_ADDRESS 0x50
 
 /****************************************************************************************/
 /* SPI FLASH configuration                                                              */
@@ -142,7 +143,7 @@
     #define GPIO_LED_PIN      GPIO_PIN_0
 
     #define GPIO_BUTTON_PORT  GPIO_PORT_1
-    #define GPIO_BUTTON_PIN   GPIO_PIN_1
+    #define GPIO_BUTTON_PIN   GPIO_PIN_3
 
 #elif HW_CONFIG_EXPERT_DK
     #define GPIO_LED_PORT     GPIO_PORT_0
@@ -152,6 +153,17 @@
     #define GPIO_BUTTON_PIN   GPIO_PIN_1
 
 #else // (other configuration)
+    #define GPIO_POWER_PORT     GPIO_PORT_2
+    #define GPIO_POWER_PIN      GPIO_PIN_5
+	
+    #define GPIO_LED_PORT     GPIO_PORT_1
+    #define GPIO_LED_PIN      GPIO_PIN_0
+
+    #define GPIO_PWM_PORT     GPIO_PORT_1
+    #define GPIO_PWM_PIN      GPIO_PIN_1
+
+    #define GPIO_BUTTON_PORT  GPIO_PORT_1
+    #define GPIO_BUTTON_PIN   GPIO_PIN_3
 #endif
 
 /*

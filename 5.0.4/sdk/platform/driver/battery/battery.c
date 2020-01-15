@@ -192,7 +192,7 @@ static inline uint16_t battery_filter_value (uint16_t new_adc_value)
  * @return Battery level    0 - 100%
  ****************************************************************************************
  */
-uint8_t battery_get_lvl(uint8_t batt_type)
+uint16_t battery_get_lvl(uint8_t batt_type)
 {
 	uint8_t batt_lvl;
 	uint16_t adc_sample;
@@ -214,10 +214,12 @@ uint8_t battery_get_lvl(uint8_t batt_type)
         }
 	}
 	else
-		adc_sample = adc_get_vbat_sample(false);
+		adc_sample = adc_get_vbat_sample(false);//sample VBAT3V
 
-
+	return adc_sample;
+#if 0	
     adc_sample = battery_filter_value(adc_sample);
+
 
     switch (batt_type)
     {
@@ -253,4 +255,5 @@ uint8_t battery_get_lvl(uint8_t batt_type)
     }
 
 	return batt_lvl;
+#endif	
 }

@@ -244,7 +244,7 @@ void user_app_disconnect(struct gapc_disconnect_ind const *param)
         ASSERT_ERR(0);
     }
 }
-
+uint8_t a = 0;
 void user_catch_rest_hndl(ke_msg_id_t const msgid,
                         void const *param,
                         ke_task_id_t const dest_id,
@@ -298,6 +298,7 @@ void user_catch_rest_hndl(ke_msg_id_t const msgid,
             switch (msg_param->handle)
             {
                 case CUST1_IDX_ADC_VAL_1_VAL:
+					a++;
                     break;
 
                 case CUST1_IDX_BUTTON_STATE_VAL:

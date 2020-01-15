@@ -75,7 +75,9 @@ struct app_proj_env_tag
  * FUNCTION DECLARATIONS
  ****************************************************************************************
  */
-
+void user_app_disable_led(void);
+void user_app_enable_led(void);
+uint8_t user_app_get_led_status(void);
 /**
  ****************************************************************************************
  * @brief Control point write indication handler.

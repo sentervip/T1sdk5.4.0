@@ -88,6 +88,11 @@ void user_custs1_ctrl_wr_ind_handler(ke_msg_id_t const msgid,
                                      struct custs1_val_write_ind const *param,
                                      ke_task_id_t const dest_id,
                                      ke_task_id_t const src_id);
+									 
+void user_custs1_long_val_wr_ind_handler(ke_msg_id_t const msgid,
+                                          struct custs1_val_write_ind const *param,
+                                          ke_task_id_t const dest_id,
+                                          ke_task_id_t const src_id);									 
 
 /**
  ****************************************************************************************

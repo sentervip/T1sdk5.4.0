@@ -164,6 +164,6 @@
 /* Used in DA14583. Enables reading the bdaddress from internal SPI flash. If non DA14583 applications the      */
 /* feature is disabled.                                                                                         */
 /****************************************************************************************************************/
-#undef CFG_READ_BDADDR_FROM_DA14583_FLASH
+#define CFG_READ_BDADDR_FROM_DA14583_FLASH
 
 #endif // _DA1458X_CONFIG_ADVANCED_H_

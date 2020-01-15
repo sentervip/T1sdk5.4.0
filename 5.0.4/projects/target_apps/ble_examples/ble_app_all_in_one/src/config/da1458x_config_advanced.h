@@ -41,7 +41,7 @@
 /*      -LP_CLK_RCX20       External internal RCX20 clock                                                       */
 /*      -LP_CLK_FROM_OTP    Use the selection in the corresponding field of OTP Header                          */
 /****************************************************************************************************************/
-#define CFG_LP_CLK              LP_CLK_XTAL32
+#define CFG_LP_CLK              LP_CLK_RCX20
 
 /****************************************************************************************************************/
 /* If defined the application uses a hadrcoded value for XTAL16M trimming. Should be disabled for devices       */
@@ -59,7 +59,7 @@
 /****************************************************************************************************************/
 /* Periodic wakeup period if GTL iface is not enabled. Time in msec                                             */
 /****************************************************************************************************************/
-#define CFG_MAX_SLEEP_DURATION_EXTERNAL_WAKEUP_MS                  10000  // 10s
+#define CFG_MAX_SLEEP_DURATION_EXTERNAL_WAKEUP_MS                  30000//10000  // 10s
 
 /****************************************************************************************************************/
 /* Wakeup from external processor running host application.                                                     */
@@ -129,7 +129,7 @@
 /* - CFG_NVDS_TAG_BLE_CA_NB_PKT         Number of packets to receive for statistics                             */
 /* - CFG_NVDS_TAG_BLE_CA_NB_BAD_PKT     Number  of bad packets needed to remove a channel                       */
 /****************************************************************************************************************/
-#define CFG_NVDS_TAG_BD_ADDRESS             {0x07, 0x00, 0x00, 0xCA, 0xEA, 0x80}
+#define CFG_NVDS_TAG_BD_ADDRESS             {0x90, 0xAA, 0x00, 0xCA, 0xEA, 0x80}
 
 #define CFG_NVDS_TAG_LPCLK_DRIFT            DRIFT_500PPM
 #define CFG_NVDS_TAG_BLE_CA_TIMER_DUR       2000

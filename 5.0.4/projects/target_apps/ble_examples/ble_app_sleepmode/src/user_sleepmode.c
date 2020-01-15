@@ -29,6 +29,7 @@
 
 #include "rwip_config.h"
 #include "app_api.h"
+#include "app_bond_db.h"
 #include "user_sleepmode.h"
 #include "user_periph_setup.h"
 #include "user_callback_config.h"
@@ -137,6 +138,9 @@ void user_app_init(void)
     // Initialize Manufacturer Specific Data
     mnf_data_init();
     default_app_on_init();
+	
+    // Fetch bond data from the external memory
+    bond_db_init();	
 }
 
 /**
@@ -323,17 +327,13 @@ void user_catch_rest_hndl(ke_msg_id_t const msgid,
 
             switch( msg_param->handle)
             {
+				case CUST1_IDX_LED_STATE_VAL:
                 case CUST1_IDX_CONTROL_POINT_VAL:
                     user_custs1_ctrl_wr_ind_handler(msgid, msg_param, dest_id, src_id);
                     break;
-                // Below handlers not used in sleep demo app
-                case CUST1_IDX_LED_STATE_VAL:
-                case CUST1_IDX_ADC_VAL_1_NTF_CFG:
-                case CUST1_IDX_BUTTON_STATE_NTF_CFG:
-                case CUST1_IDX_INDICATEABLE_IND_CFG:
-                case CUST1_IDX_LONG_VALUE_NTF_CFG:
                 case CUST1_IDX_LONG_VALUE_VAL:
-
+                    user_custs1_long_val_wr_ind_handler(msgid, msg_param, dest_id, src_id);
+                    break;
                 default:
                     break;
             }

@@ -45,9 +45,9 @@ static att_svc_desc128_t custs1_svc                              = DEF_CUST1_SVC
 static uint8_t CUST1_CTRL_POINT_UUID_128[ATT_UUID_128_LEN]       = DEF_CUST1_CTRL_POINT_UUID_128;
 static uint8_t CUST1_LED_STATE_UUID_128[ATT_UUID_128_LEN]        = DEF_CUST1_LED_STATE_UUID_128;
 static uint8_t CUST1_ADC_VAL_1_UUID_128[ATT_UUID_128_LEN]        = DEF_CUST1_ADC_VAL_1_UUID_128;
-static uint8_t CUST1_ADC_VAL_2_UUID_128[ATT_UUID_128_LEN]        = DEF_CUST1_ADC_VAL_2_UUID_128;
-static uint8_t CUST1_BUTTON_STATE_UUID_128[ATT_UUID_128_LEN]     = DEF_CUST1_BUTTON_STATE_UUID_128;
-static uint8_t CUST1_INDICATEABLE_UUID_128[ATT_UUID_128_LEN]     = DEF_CUST1_INDICATEABLE_UUID_128;
+//static uint8_t CUST1_ADC_VAL_2_UUID_128[ATT_UUID_128_LEN]        = DEF_CUST1_ADC_VAL_2_UUID_128;
+//static uint8_t CUST1_BUTTON_STATE_UUID_128[ATT_UUID_128_LEN]     = DEF_CUST1_BUTTON_STATE_UUID_128;
+//static uint8_t CUST1_INDICATEABLE_UUID_128[ATT_UUID_128_LEN]     = DEF_CUST1_INDICATEABLE_UUID_128;
 static uint8_t CUST1_LONG_VALUE_UUID_128[ATT_UUID_128_LEN]       = DEF_CUST1_LONG_VALUE_UUID_128;
 
 static struct att_char128_desc custs1_ctrl_point_char       = {ATT_CHAR_PROP_WR,
@@ -62,17 +62,17 @@ static struct att_char128_desc custs1_adc_val_1_char        = {ATT_CHAR_PROP_RD 
                                                               {0, 0},
                                                               DEF_CUST1_ADC_VAL_1_UUID_128};
 
-static struct att_char128_desc custs1_adc_val_2_char        = {ATT_CHAR_PROP_RD,
-                                                              {0, 0},
-                                                              DEF_CUST1_ADC_VAL_2_UUID_128};
+//static struct att_char128_desc custs1_adc_val_2_char        = {ATT_CHAR_PROP_RD,
+//                                                              {0, 0},
+//                                                              DEF_CUST1_ADC_VAL_2_UUID_128};
 
-static struct att_char128_desc custs1_button_state_char     = {ATT_CHAR_PROP_RD | ATT_CHAR_PROP_NTF,
-                                                              {0, 0},
-                                                              DEF_CUST1_BUTTON_STATE_UUID_128};
+//static struct att_char128_desc custs1_button_state_char     = {ATT_CHAR_PROP_RD | ATT_CHAR_PROP_NTF,
+//                                                              {0, 0},
+//                                                              DEF_CUST1_BUTTON_STATE_UUID_128};
 
-static struct att_char128_desc custs1_indicateable_char     = {ATT_CHAR_PROP_RD | ATT_CHAR_PROP_IND,
-                                                              {0, 0},
-                                                              DEF_CUST1_INDICATEABLE_UUID_128};
+//static struct att_char128_desc custs1_indicateable_char     = {ATT_CHAR_PROP_RD | ATT_CHAR_PROP_IND,
+//                                                              {0, 0},
+//                                                              DEF_CUST1_INDICATEABLE_UUID_128};
 
 static struct att_char128_desc custs1_long_value_char       = {ATT_CHAR_PROP_RD | ATT_CHAR_PROP_WR | ATT_CHAR_PROP_NTF,
                                                               {0, 0},
@@ -134,7 +134,7 @@ struct attm_desc_128 custs1_att_db[CUST1_IDX_NB] =
     // ADC Value 1 Characteristic User Description
     [CUST1_IDX_ADC_VAL_1_USER_DESC]     = {(uint8_t*)&att_decl_user_desc, ATT_UUID_16_LEN, PERM(RD, ENABLE),
                                             sizeof(CUST1_ADC_VAL_1_USER_DESC) - 1, sizeof(CUST1_ADC_VAL_1_USER_DESC) - 1, CUST1_ADC_VAL_1_USER_DESC},
-
+/*
     // ADC Value 2 Characteristic Declaration
     [CUST1_IDX_ADC_VAL_2_CHAR]          = {(uint8_t*)&att_decl_char, ATT_UUID_16_LEN, PERM(RD, ENABLE),
                                             sizeof(custs1_adc_val_2_char), sizeof(custs1_adc_val_2_char), (uint8_t*)&custs1_adc_val_2_char},
@@ -178,7 +178,7 @@ struct attm_desc_128 custs1_att_db[CUST1_IDX_NB] =
     // Indicateable Characteristic User Description
     [CUST1_IDX_INDICATEABLE_USER_DESC]  = {(uint8_t*)&att_decl_user_desc, ATT_UUID_16_LEN, PERM(RD, ENABLE),
                                             sizeof(CUST1_INDICATEABLE_USER_DESC) - 1, sizeof(CUST1_INDICATEABLE_USER_DESC) - 1, CUST1_INDICATEABLE_USER_DESC},
-
+*/
     // Long Value Characteristic Declaration
     [CUST1_IDX_LONG_VALUE_CHAR]         = {(uint8_t*)&att_decl_char, ATT_UUID_16_LEN, PERM(RD, ENABLE),
                                             sizeof(custs1_long_value_char), sizeof(custs1_long_value_char), (uint8_t*)&custs1_long_value_char},

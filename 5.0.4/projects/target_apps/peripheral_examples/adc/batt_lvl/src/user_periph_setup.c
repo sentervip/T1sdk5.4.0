@@ -40,4 +40,15 @@ void periph_init(void)
 
     // Initialize UART component
     uart2_init(UART2_BAUDRATE, UART2_DATALENGTH);
+	
+	GPIO_ConfigurePin(GPIO_PORT_0, GPIO_PIN_0, INPUT, PID_ADC, false );
+	GPIO_ConfigurePin(GPIO_PORT_0, GPIO_PIN_2, INPUT, PID_ADC, false );
+	
+	GPIO_ConfigurePin(GPIO_PORT_2, GPIO_PIN_5, OUTPUT, PID_GPIO, false);
+	GPIO_SetActive( GPIO_PORT_2, GPIO_PIN_5);//power on
+	
+	GPIO_ConfigurePin(GPIO_PORT_1, GPIO_PIN_0, OUTPUT, PID_GPIO, false);
+	GPIO_SetActive( GPIO_PORT_1, GPIO_PIN_0);//led on	
+	
+	GPIO_ConfigurePin(GPIO_PORT_1, GPIO_PIN_1, OUTPUT, PID_PWM2, true);
 }

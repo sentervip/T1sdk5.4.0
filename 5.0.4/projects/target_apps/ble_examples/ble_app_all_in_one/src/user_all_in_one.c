@@ -52,6 +52,7 @@
  * TYPE DEFINITIONS
  ****************************************************************************************
  */
+static void app_button_enable(void);
 
 // Manufacturer Specific Data ADV structure type
 struct mnf_specific_data_ad_structure
@@ -70,12 +71,19 @@ struct mnf_specific_data_ad_structure
 uint8_t app_connection_idx                    __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
 timer_hnd app_adv_data_update_timer_used      __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
 timer_hnd app_param_update_request_timer_used __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
+timer_hnd wakeup_led_ctrl_used				  __attribute__((section("retention_mem_area0"),zero_init));
+timer_hnd app_check_button_used				  __attribute__((section("retention_mem_area0"),zero_init));
+
+// lewis add
+uint8_t app_connection_flag                    __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
+
 
 // Manufacturer Specific Data
 struct mnf_specific_data_ad_structure mnf_data __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
 
 // Stored static random address
 struct gap_bdaddr stored_addr                  __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
+
 
 /*
  * FUNCTION DEFINITIONS
@@ -153,10 +161,81 @@ static void app_wakeup_cb(void)
     // If state is not idle, ignore the message
     if (ke_state_get(TASK_APP) == APP_CONNECTABLE)
     {
-        user_app_adv_start();
+			user_app_adv_start();
     }
 }
-
+static void app_wakeup_led_ctrl_cb(void)
+{
+//	 static uint8_t powerOnLedFinshFlag =0;
+//	 static uint16_t powerOffCount = 0;
+	if(arch_ble_ext_wakeup_get() == false)
+	{
+		//if(powerOnLedFinshFlag == 0)
+		{
+			//powerOnLedFinshFlag = 1;
+			for(int j = 0;j<20;j++)
+			{
+				if(user_app_get_led_status() == 0)
+				{
+					user_app_enable_led();
+				}
+				else
+				{
+					user_app_disable_led();//led off
+				}
+				for(int m=0;m<200000;m++);
+			}
+		}
+	}		
+}
+static void app_check_button_cb(void)
+{
+	static uint16_t powerOffCount = 0;	
+	
+		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0)
+		{
+			powerOffCount++;
+			
+			user_app_enable_led();
+				
+			arch_force_active_mode();
+			if(powerOffCount > 5)
+			{
+				powerOffCount = 0;
+				
+				if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)			// lewis add
+				{
+					app_easy_timer_cancel(app_adv_data_update_timer_used);					
+					app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;		
+				}				
+				
+				app_easy_gap_advertise_stop();
+				
+				//arch_restore_sleep_mode();
+				user_app_disable_periphs();
+				user_app_disable_led();
+				for(int i=0;i<10;i++)
+				arch_restore_sleep_mode();			
+				if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
+				{
+					//app_easy_timer_cancel(app_check_button_used);
+					app_check_button_used = EASY_TIMER_INVALID_TIMER;
+				}
+				
+			}
+		}
+		else
+		{
+			powerOffCount = 0;
+			user_app_disable_led();
+			arch_restore_sleep_mode();
+		}
+		if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
+		{
+			app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_check_button_cb);	
+		}
+	
+}
 /**
  ****************************************************************************************
  * @brief Button press callback function. Registered in WKUPCT driver.
@@ -176,7 +255,27 @@ static void app_button_press_cb(void)
         arch_ble_force_wakeup();
         arch_ble_ext_wakeup_off();
         app_easy_wakeup();
+				wakeup_led_ctrl_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_wakeup_led_ctrl_cb);
     }
+}
+
+/**
+ ****************************************************************************************
+ * @brief Sets button as wakeup trigger
+ * @return void
+ ****************************************************************************************
+*/
+static void app_button_enable(void)
+{
+    app_easy_wakeup_set(app_wakeup_cb);
+    wkupct_register_callback(app_button_press_cb);
+//    if (GPIO_GetPinStatus(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN))
+		{
+    wkupct_enable_irq(WKUPCT_PIN_SELECT(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN), // select pin (GPIO_BUTTON_PORT, GPIO_BUTTON_PIN)
+                      WKUPCT_PIN_POLARITY(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN, WKUPCT_PIN_POLARITY_LOW), // polarity low
+                                          1, // 1 event
+                                          40); // debouncing time = 0
+		}
 }
 
 void user_app_init(void)
@@ -211,6 +310,10 @@ void user_app_init(void)
     // Fetch bond data from the external memory
     bond_db_init();
 }
+//void user_app_going_to_sleep(sleep_mode_t sleep_mode)
+//{
+//	user_app_disable_led();
+//}
 
 /**
  ****************************************************************************************
@@ -269,9 +372,12 @@ void user_app_adv_start(void)
 #endif
 
     // Enable deep sleep
-    arch_set_deep_sleep();
+//    arch_set_deep_sleep();				
+    arch_set_extended_sleep();				// lewis add		
 
     app_easy_gap_undirected_advertise_start();
+	
+	app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY, app_check_button_cb);
 }
 
 #if (BLE_SPOTA_RECEIVER)
@@ -297,16 +403,30 @@ void on_spotar_status_change( const uint8_t spotar_event)
 }
 #endif // (BLE_SPOTA_RECEIVER)
 
+
 void user_app_connection(uint8_t connection_idx, struct gapc_connection_req_ind const *param)
 {
     default_app_on_connection(connection_idx, param);
-
+	
+		app_connection_flag = 1;
+	
     if (app_env[connection_idx].conidx != GAP_INVALID_CONIDX)
     {
         app_connection_idx = connection_idx;
 
-        // Stop the advertising data update timer
-        app_easy_timer_cancel(app_adv_data_update_timer_used);
+				if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)		// lewis add
+				{
+					// Stop the advertising data update timer
+					app_easy_timer_cancel(app_adv_data_update_timer_used);
+					app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;
+				}			
+				
+				if(wakeup_led_ctrl_used != EASY_TIMER_INVALID_TIMER)
+				{
+					app_easy_timer_cancel(wakeup_led_ctrl_used);
+					wakeup_led_ctrl_used = EASY_TIMER_INVALID_TIMER; 
+				}				
+				
 
         // Check if the parameters of the established connection are the preferred ones.
         // If not then schedule a connection parameter update request.
@@ -325,6 +445,9 @@ void user_app_connection(uint8_t connection_idx, struct gapc_connection_req_ind 
 
 void user_app_disconnect(struct gapc_disconnect_ind const *param)
 {
+	
+		app_connection_flag = 0;
+	
     // Cancel the parameter update request timer
     if (app_param_update_request_timer_used != EASY_TIMER_INVALID_TIMER)
     {
@@ -332,6 +455,12 @@ void user_app_disconnect(struct gapc_disconnect_ind const *param)
         app_param_update_request_timer_used = EASY_TIMER_INVALID_TIMER;
     }
 
+		if(app_check_button_used != EASY_TIMER_INVALID_TIMER)							// lewis add
+		{
+			app_easy_timer_cancel(app_check_button_used);
+			app_check_button_used = EASY_TIMER_INVALID_TIMER;
+		}			
+		
     uint8_t state = ke_state_get(TASK_APP);
 
     if ((state == APP_SECURITY) ||
@@ -470,7 +599,7 @@ void user_catch_rest_hndl(ke_msg_id_t const msgid,
                 case CUST1_IDX_BUTTON_STATE_NTF_CFG:
                     user_custs1_button_cfg_ind_handler(msgid, msg_param, dest_id, src_id);
                     break;
-
+/*
                 case CUST1_IDX_INDICATEABLE_IND_CFG:
                     user_custs1_long_val_cfg_ind_handler(msgid, msg_param, dest_id, src_id);
                     break;
@@ -478,7 +607,7 @@ void user_catch_rest_hndl(ke_msg_id_t const msgid,
                 case CUST1_IDX_LONG_VALUE_NTF_CFG:
                     user_custs1_long_val_cfg_ind_handler(msgid, msg_param, dest_id, src_id);
                     break;
-
+*/
                 case CUST1_IDX_LONG_VALUE_VAL:
                     user_custs1_long_val_wr_ind_handler(msgid, msg_param, dest_id, src_id);
                     break;
@@ -508,19 +637,19 @@ void user_catch_rest_hndl(ke_msg_id_t const msgid,
             }
         } break;
 
-        case CUSTS1_VAL_IND_CFM:
+        /*case CUSTS1_VAL_IND_CFM:
         {
             struct custs1_val_ind_cfm const *msg_param = (struct custs1_val_ind_cfm const *)(param);
 
             switch (msg_param->handle)
             {
-                case CUST1_IDX_INDICATEABLE_VAL:
-                    break;
+                //case CUST1_IDX_INDICATEABLE_VAL:
+                 //   break;
 
                 default:
                     break;
              }
-         } break;
+         } break;*/
 
         case GAPC_PARAM_UPDATED_IND:
         {
@@ -548,27 +677,13 @@ void user_catch_rest_hndl(ke_msg_id_t const msgid,
     }
 }
 
-/**
- ****************************************************************************************
- * @brief Sets button as wakeup trigger
- * @return void
- ****************************************************************************************
-*/
-static void app_button_enable(void)
-{
-    app_easy_wakeup_set(app_wakeup_cb);
-    wkupct_register_callback(app_button_press_cb);
-    wkupct_enable_irq(WKUPCT_PIN_SELECT(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN), // select pin (GPIO_BUTTON_PORT, GPIO_BUTTON_PIN)
-                      WKUPCT_PIN_POLARITY(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN, WKUPCT_PIN_POLARITY_LOW), // polarity low
-                                          1, // 1 event
-                                          40); // debouncing time = 0
-}
-
 void user_app_adv_undirect_complete(const uint8_t status)
 {
     // Disable wakeup for BLE and timer events. Only external (GPIO) wakeup events can wakeup processor.
     if (status == GAP_ERR_CANCELED)
     {
+		user_app_disable_periphs();
+		user_app_disable_led();
         arch_ble_ext_wakeup_on();
 
         // Configure wakeup button

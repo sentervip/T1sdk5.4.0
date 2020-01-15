@@ -47,7 +47,7 @@
 #define APP_PARAM_UPDATE_REQUEST_TO        (1000)  // 1000 * 10ms = 10sec, The maximum allowed value is 30000 = 300 sec
 
 /* Advertising data update timer */
-#define APP_ADV_DATA_UPDATE_TO             (1000)  // 1000 * 10ms = 10sec, The maximum allowed value is 30000 = 300 sec
+#define APP_ADV_DATA_UPDATE_TO             (12000)  // 1000 * 10ms = 10sec, The maximum allowed value is 30000 = 300 sec
 
 /* Manufacturer specific data constants */
 #define APP_AD_MSD_COMPANY_ID              (0xABCD)
@@ -55,6 +55,7 @@
 #define APP_AD_MSD_DATA_LEN                (sizeof(uint16_t))
 
 #define APP_PERIPHERAL_CTRL_TIMER_DELAY    (100)
+#define APP_WAKEUP_LED_CTRL_TIMER_DELAY    (50)
 
 /// Passkey that is presented to the user and is entered on the peer device (MITM)
 #define APP_SECURITY_MITM_PASSKEY_VAL      (123456)
@@ -75,7 +76,8 @@
  ****************************************************************************************
 */
 void user_app_init(void);
-
+void user_app_going_to_sleep(sleep_mode_t sleep_mode);
+											
 /**
  ****************************************************************************************
  * @brief Advertising function.

@@ -66,6 +66,7 @@ void spi_flash_size_init(void)
             flash_size = W25X20CL_SIZE;
             flash_page = W25X20CL_PAGE;
             break; 
+		case 0xa110:
         default:
             flash_size = SPI_FLASH_DEFAULT_SIZE; 
             flash_page = SPI_FLASH_DEFAULT_PAGE; 

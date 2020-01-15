@@ -37,11 +37,11 @@
 //*** <<< Use Configuration Wizard in Context Menu >>> ***
 
 // <o> DK selection <0=> As in da1458x_periph_setup.h <1=> Basic <2=> Pro <3=> Expert
-#define HW_CONFIG (2)
+#define HW_CONFIG (0)
 
-#define HW_CONFIG_BASIC_DK  ((HW_CONFIG==0 && SDK_CONFIG==1) || HW_CONFIG==1)
-#define HW_CONFIG_PRO_DK    ((HW_CONFIG==0 && SDK_CONFIG==2) || HW_CONFIG==2)
-#define HW_CONFIG_EXPERT_DK ((HW_CONFIG==0 && SDK_CONFIG==3) || HW_CONFIG==3)
+//#define HW_CONFIG_BASIC_DK  ((HW_CONFIG==0 && SDK_CONFIG==1) || HW_CONFIG==1)
+//#define HW_CONFIG_PRO_DK    ((HW_CONFIG==0 && SDK_CONFIG==2) || HW_CONFIG==2)
+//#define HW_CONFIG_EXPERT_DK ((HW_CONFIG==0 && SDK_CONFIG==3) || HW_CONFIG==3)
 
 //*** <<< end of configuration section >>>    ***
 
@@ -160,18 +160,30 @@
 
     #define GPIO_BUTTON_PORT  GPIO_PORT_1
     #define GPIO_BUTTON_PIN   GPIO_PIN_1
-
+	
 #else // (other configuration)
+
+    #define GPIO_POWER_PORT     GPIO_PORT_2
+    #define GPIO_POWER_PIN      GPIO_PIN_5
+	
+    #define GPIO_LED_PORT     GPIO_PORT_1
+    #define GPIO_LED_PIN      GPIO_PIN_0
+
+    #define GPIO_PWM_PORT     GPIO_PORT_1
+    #define GPIO_PWM_PIN      GPIO_PIN_1
+
+    #define GPIO_BUTTON_PORT  GPIO_PORT_1
+    #define GPIO_BUTTON_PIN   GPIO_PIN_3	
 #endif
 
 /****************************************************************************************/
 /* I2C EEPROM GPIO assignment                                                           */
 /****************************************************************************************/
-
+/*
 #define I2C_GPIO_PORT   GPIO_PORT_0
 #define I2C_SCL_PIN     GPIO_PIN_2
 #define I2C_SDA_PIN     GPIO_PIN_1
-
+*/
 /*
  * FUNCTION DECLARATIONS
  ****************************************************************************************

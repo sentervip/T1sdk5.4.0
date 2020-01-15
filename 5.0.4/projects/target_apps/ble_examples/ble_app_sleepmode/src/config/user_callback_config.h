@@ -43,15 +43,15 @@ static const struct app_callbacks user_app_callbacks = {
     .app_on_scanning_completed      = NULL,
     .app_on_adv_report_ind          = NULL,
 #if (BLE_APP_SEC)
-    .app_on_pairing_request         = NULL,
-    .app_on_tk_exch_nomitm          = NULL,
+    .app_on_pairing_request         = default_app_on_pairing_request,
+    .app_on_tk_exch_nomitm          = user_app_on_tk_exch_nomitm,
     .app_on_irk_exch                = NULL,
     .app_on_csrk_exch               = NULL,
-    .app_on_ltk_exch                = NULL,
-    .app_on_pairing_succeded        = NULL,
+    .app_on_ltk_exch                = default_app_on_ltk_exch,
+    .app_on_pairing_succeded        = user_app_on_pairing_succeded,
     .app_on_encrypt_ind             = NULL,
     .app_on_mitm_passcode_req       = NULL,
-    .app_on_encrypt_req_ind         = NULL,
+    .app_on_encrypt_req_ind         = user_app_on_encrypt_req_ind,
     .app_on_security_req_ind        = NULL,
 #endif // (BLE_APP_SEC)
 };

@@ -29,6 +29,51 @@
 #include "app_adv_data.h"
 
 /*
+ * DEFINES
+ ****************************************************************************************
+ */
+
+/************************************************************
+ * Select memory medium for bond data storage:
+ *
+ * - SPI FLASH  (#define USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
+ * - I2C EEPROM (#define USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
+ * - cache only (define nothing)
+ *
+ * If both are defined the SPI FLASH will be used.
+ ************************************************************
+ */
+#undef USER_CFG_APP_BOND_DB_USE_SPI_FLASH
+#undef USER_CFG_APP_BOND_DB_USE_I2C_EEPROM
+
+/************************************************************
+ * Pairing Methods:
+ *
+ * - JUST WORKS (#define USER_CFG_PAIR_METHOD_JUST_WORKS)
+ * - PASSKEY    (#define USER_CFG_PAIR_METHOD_PASSKEY)
+ * - OOB        (#define USER_CFG_PAIR_METHOD_OOB)
+ *
+ * Select only one option.
+ ************************************************************
+ */
+#undef USER_CFG_PAIR_METHOD_JUST_WORKS
+#undef USER_CFG_PAIR_METHOD_PASSKEY
+#undef USER_CFG_PAIR_METHOD_OOB
+
+/*************************************************************************
+ * Privacy feature:
+ *
+ * - PRIV_GEN_STATIC_RND    (#define USER_CFG_PRIV_GEN_STATIC_RND)
+ * - PRIV_GEN_RSLV_RND      (#define USER_CFG_PRIV_GEN_RSLV_RND)
+ *
+ * Select only one option for random address. If none is selected, a public 
+ * address will be used.
+ **************************************************************************
+ */
+#undef USER_CFG_PRIV_GEN_STATIC_RND
+#undef USER_CFG_PRIV_GEN_RSLV_RND
+
+/*
  * VARIABLES
  ****************************************************************************************
  */

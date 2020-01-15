@@ -57,7 +57,7 @@
  ************************************************************
  */
 #undef USER_CFG_PAIR_METHOD_JUST_WORKS
-#define USER_CFG_PAIR_METHOD_PASSKEY
+#undef USER_CFG_PAIR_METHOD_PASSKEY
 #undef USER_CFG_PAIR_METHOD_OOB
 
 /*************************************************************************
@@ -86,7 +86,7 @@
  * - ARCH_DEEP_SLEEP_ON
  ******************************************
  */
-const static sleep_state_t app_default_sleep_mode = ARCH_DEEP_SLEEP_ON;
+const static sleep_state_t app_default_sleep_mode = ARCH_EXT_SLEEP_ON;//ARCH_SLEEP_OFF;//			// lewis add
 
 /*
  ****************************************************************************************
@@ -156,7 +156,7 @@ static const struct advertise_configuration user_adv_conf = {
     /// Direct address information (GAPM_ADV_DIRECT)
     /// (used only if reconnection address isn't set or privacy disabled)
     /// BD Address of device
-    .peer_addr = {0x1, 0x2, 0x3, 0x4, 0x5, 0x6},
+    .peer_addr = {0x2, 0x2, 0x3, 0x4, 0x5, 0x6},
 
     /// Direct address information (GAPM_ADV_DIRECT)
     /// (used only if reconnection address isn't set or privacy disabled)
@@ -196,7 +196,7 @@ static const struct advertise_configuration user_adv_conf = {
 #define USER_ADVERTISE_SCAN_RESPONSE_DATA_LEN (sizeof(USER_ADVERTISE_SCAN_RESPONSE_DATA)-1)
 
 /// Device name to be placed in advertising or scan response data
-#define USER_DEVICE_NAME    ("DIALOG-ALL-IN")
+#define USER_DEVICE_NAME    ("PTM100")
 
 /// Device name length
 #define USER_DEVICE_NAME_LEN (sizeof(USER_DEVICE_NAME)-1)

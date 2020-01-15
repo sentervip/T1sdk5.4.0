@@ -56,8 +56,8 @@
  * Select only one option.
  ************************************************************
  */
+#undef USER_CFG_PAIR_METHOD_PASSKEY
 #undef USER_CFG_PAIR_METHOD_JUST_WORKS
-#define USER_CFG_PAIR_METHOD_PASSKEY
 #undef USER_CFG_PAIR_METHOD_OOB
 
 /*************************************************************************

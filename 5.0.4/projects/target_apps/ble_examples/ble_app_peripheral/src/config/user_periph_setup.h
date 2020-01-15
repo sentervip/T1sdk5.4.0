@@ -37,11 +37,11 @@
 //*** <<< Use Configuration Wizard in Context Menu >>> ***
 
 // <o> DK selection <0=> As in da1458x_periph_setup.h <1=> Basic <2=> Pro <3=> Expert
-#define HW_CONFIG (2)
+#define HW_CONFIG (0)
 
-#define HW_CONFIG_BASIC_DK  ((HW_CONFIG==0 && SDK_CONFIG==1) || HW_CONFIG==1)
-#define HW_CONFIG_PRO_DK    ((HW_CONFIG==0 && SDK_CONFIG==2) || HW_CONFIG==2)
-#define HW_CONFIG_EXPERT_DK ((HW_CONFIG==0 && SDK_CONFIG==3) || HW_CONFIG==3)
+//#define HW_CONFIG_BASIC_DK  ((HW_CONFIG==0 && SDK_CONFIG==1) || HW_CONFIG==1)
+//#define HW_CONFIG_PRO_DK    ((HW_CONFIG==0 && SDK_CONFIG==2) || HW_CONFIG==2)
+//#define HW_CONFIG_EXPERT_DK ((HW_CONFIG==0 && SDK_CONFIG==3) || HW_CONFIG==3)
 
 //*** <<< end of configuration section >>>    ***
 
@@ -142,6 +142,8 @@
     #define GPIO_LED_PIN      GPIO_PIN_0
 
 #else // (other configuration)
+    #define GPIO_LED_PORT     GPIO_PORT_1
+    #define GPIO_LED_PIN      GPIO_PIN_0
 #endif
 
 /*

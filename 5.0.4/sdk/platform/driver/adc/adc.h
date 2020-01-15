@@ -108,5 +108,5 @@ void adc_calibrate(void);
  ****************************************************************************************
  */
 uint32_t adc_get_vbat_sample(bool sample_vbat1v);
-
+uint32_t adc_get_vbat_sampleCH(uint16_t sampleChannel);
 #endif // _ADC_H_

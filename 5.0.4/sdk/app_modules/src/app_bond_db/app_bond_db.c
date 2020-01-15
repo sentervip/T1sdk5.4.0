@@ -52,6 +52,7 @@ struct bond_db
     uint16_t end_hdr;
 };
 
+struct user_config_data_t user_config_data;
 /*
  * GLOBAL VARIABLE DEFINITIONS
  ****************************************************************************************
@@ -85,6 +86,8 @@ static void bond_db_load_flash(void)
 
     spi_flash_read_data((uint8_t *)&bdb, APP_BOND_DB_DATA_OFFSET, sizeof(struct bond_db));
 
+	spi_flash_read_data((uint8_t *)&user_config_data, APP_USER_CONFIG_DATA_OFFSET, sizeof(struct user_config_data_t));
+	
     spi_release();
 }
 
@@ -113,7 +116,29 @@ static int8_t bond_db_erase_flash_sectors(void)
     }
     return ret;
 }
+static int8_t user_cfgdata_erase_flash_sectors(uint32_t flash)
+{
+    uint32_t sector_nb;
+    uint32_t offset;
+    int8_t ret;
+    int i;
 
+    // Calculate the starting sector offset
+    offset = (flash / SPI_SECTOR_SIZE) * SPI_SECTOR_SIZE;
+
+    // Calculate the numbers of sectors to erase
+    sector_nb = 1;
+
+    // Erase flash sectors
+    for (i = 0; i < sector_nb; i++)
+    {
+        ret = spi_flash_block_erase(offset, SECTOR_ERASE);
+        offset += SPI_SECTOR_SIZE;
+        if (ret != ERR_OK)
+            break;
+    }
+    return ret;
+}
 static void bond_db_store_flash(void)
 {
     int8_t ret;
@@ -140,7 +165,36 @@ static void bond_db_clear_flash(void)
 
     spi_release();
 }
+void bond_cfgdata_store_flash(void)
+{
+    int8_t ret;
+	uint32_t offset = APP_USER_CONFIG_DATA_OFFSET;
+	
+    bond_db_spi_flash_init();
 
+    ret = user_cfgdata_erase_flash_sectors(offset);
+    if (ret == ERR_OK)
+    {
+        spi_flash_write_data((uint8_t *)&user_config_data, offset, sizeof(struct user_config_data_t));
+    }
+
+    spi_release();
+}
+void bond_adjdata_store_flash(void)
+{
+    int8_t ret;
+	uint32_t offset = APP_ADC_ADJ_DATA_OFFSET;
+	
+    bond_db_spi_flash_init();
+
+    ret = user_cfgdata_erase_flash_sectors(offset);
+    if (ret == ERR_OK)
+    {
+        spi_flash_write_data((uint8_t *)&user_config_data, offset, sizeof(struct user_config_data_t));
+    }
+
+    spi_release();
+}
 #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
 
 static void bond_db_load_eeprom(void)

@@ -57,6 +57,6 @@
  * @return Battery level. 0 - 100%
  ****************************************************************************************
  */
-uint8_t battery_get_lvl(uint8_t batt_type);
+uint16_t battery_get_lvl(uint8_t batt_type);
 
 #endif // _BATTERY_H_

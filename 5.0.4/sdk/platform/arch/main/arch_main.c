@@ -138,10 +138,10 @@ extern bool fine_hit;
  ****************************************************************************************
  */
 int main_func(void) __attribute__((noreturn));
-
+sleep_mode_t sleep_mode;
 int main_func(void)
 {
-    sleep_mode_t sleep_mode;
+    
 
     //global initialise
     system_init();

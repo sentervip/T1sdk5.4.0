@@ -26,6 +26,8 @@
 #include "gpio.h"
 #include "uart.h"                    // UART initialization
 
+extern uint8_t app_connection_flag;
+
 /**
  ****************************************************************************************
  * @brief Each application reserves its own GPIOs here.
@@ -38,38 +40,21 @@
 
 void GPIO_reservations(void)
 {
-/*
-* Globally reserved GPIOs reservation
-*/
-
-/*
-* Application specific GPIOs reservation. Used only in Development mode (#if DEVELOPMENT_DEBUG)
-
-i.e.
-    RESERVE_GPIO(DESCRIPTIVE_NAME, GPIO_PORT_0, GPIO_PIN_1, PID_GPIO);    //Reserve P_01 as Generic Purpose I/O
-*/
-#ifdef CFG_PRINTF_UART2
-    RESERVE_GPIO(UART2_TX, GPIO_UART2_TX_PORT, GPIO_UART2_TX_PIN, PID_UART2_TX);
-    RESERVE_GPIO(UART2_RX, GPIO_UART2_RX_PORT, GPIO_UART2_RX_PIN, PID_UART2_RX);
-#endif
-    RESERVE_GPIO(PUSH_BUTTON, GPIO_BUTTON_PORT, GPIO_BUTTON_PIN, PID_GPIO);
-    RESERVE_GPIO(PWM0, GPIO_PWM_PORT, GPIO_PWM_PIN, PID_PWM0);
-    RESERVE_GPIO(LED, GPIO_LED_PORT, GPIO_LED_PIN, PID_GPIO);
+	RESERVE_GPIO(A0,GPIO_PORT_0, GPIO_PIN_1, PID_ADC );
+	RESERVE_GPIO(A1,GPIO_PORT_0, GPIO_PIN_2, PID_ADC );
+	
+	RESERVE_GPIO(A2,GPIO_POWER_PORT, GPIO_POWER_PIN, PID_GPIO);
+	//GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
+	
+    RESERVE_GPIO(A3,GPIO_BUTTON_PORT, GPIO_BUTTON_PIN, PID_GPIO);
+    RESERVE_GPIO(A4,GPIO_PWM_PORT, GPIO_PWM_PIN, PID_PWM2);
+    RESERVE_GPIO(A5,GPIO_LED_PORT, GPIO_LED_PIN, PID_GPIO);
     
-    // I2C EEPROM
-    RESERVE_GPIO( I2C_SCL, I2C_GPIO_PORT, I2C_SCL_PIN, PID_I2C_SCL);
-    RESERVE_GPIO( I2C_SDA, I2C_GPIO_PORT, I2C_SDA_PIN, PID_I2C_SDA);
-
     // SPI FLASH
-    #if !defined(__DA14583__)
-    RESERVE_GPIO(SPI_EN,  SPI_EN_GPIO_PORT,  SPI_EN_GPIO_PIN,  PID_SPI_EN);
-    RESERVE_GPIO(SPI_CLK, SPI_CLK_GPIO_PORT, SPI_CLK_GPIO_PIN, PID_SPI_CLK);
-    RESERVE_GPIO(SPI_DO,  SPI_DO_GPIO_PORT,  SPI_DO_GPIO_PIN,  PID_SPI_DO);
-    RESERVE_GPIO(SPI_DI,  SPI_DI_GPIO_PORT,  SPI_DI_GPIO_PIN,  PID_SPI_DI);
-    #else
-    // The DA14583 GPIOs that are dedicated to its internal SPI flash
-    // are automatically reserved by the GPIO driver.
-    #endif
+    RESERVE_GPIO(A6,SPI_EN_GPIO_PORT,  SPI_EN_GPIO_PIN, PID_SPI_EN);
+    RESERVE_GPIO(A7,SPI_CLK_GPIO_PORT, SPI_CLK_GPIO_PIN, PID_SPI_CLK);
+    RESERVE_GPIO(A8,SPI_DO_GPIO_PORT,  SPI_DO_GPIO_PIN, PID_SPI_DO);
+    RESERVE_GPIO(A9,SPI_DI_GPIO_PORT,  SPI_DI_GPIO_PIN,  PID_SPI_DI);
 }
 #endif // CFG_DEVELOPMENT_DEBUG
 
@@ -79,14 +64,24 @@ void set_pad_functions(void)        // set gpio port function mode
     GPIO_ConfigurePin(GPIO_UART2_TX_PORT, GPIO_UART2_TX_PIN, OUTPUT, PID_UART2_TX, false);
     GPIO_ConfigurePin(GPIO_UART2_RX_PORT, GPIO_UART2_RX_PIN, INPUT, PID_UART2_RX, false);
 #endif
+	GPIO_ConfigurePin(GPIO_PORT_0, GPIO_PIN_0, INPUT, PID_ADC, false );
+	GPIO_ConfigurePin(GPIO_PORT_0, GPIO_PIN_2, INPUT, PID_ADC, false );
+	
+	if(app_connection_flag)
+		GPIO_ConfigurePin(GPIO_POWER_PORT, GPIO_POWER_PIN, OUTPUT, PID_GPIO, true);
+	else
+		GPIO_ConfigurePin(GPIO_POWER_PORT, GPIO_POWER_PIN, OUTPUT, PID_GPIO, false);		
+//	GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
+	
+	
     GPIO_ConfigurePin(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN, INPUT_PULLUP, PID_GPIO, false);
-    GPIO_ConfigurePin(GPIO_PWM_PORT, GPIO_PWM_PIN, OUTPUT, PID_PWM0, false);
+    GPIO_ConfigurePin(GPIO_PWM_PORT, GPIO_PWM_PIN, OUTPUT, PID_PWM2, false);
     GPIO_ConfigurePin(GPIO_LED_PORT, GPIO_LED_PIN, OUTPUT, PID_GPIO, false);
     
     // I2C EEPROM
-    GPIO_ConfigurePin(I2C_GPIO_PORT, I2C_SCL_PIN, INPUT, PID_I2C_SCL, false);
+/*    GPIO_ConfigurePin(I2C_GPIO_PORT, I2C_SCL_PIN, INPUT, PID_I2C_SCL, false);
     GPIO_ConfigurePin(I2C_GPIO_PORT, I2C_SDA_PIN, INPUT, PID_I2C_SDA, false);
-
+*/
     // SPI FLASH
     GPIO_ConfigurePin(SPI_EN_GPIO_PORT,  SPI_EN_GPIO_PIN,  OUTPUT, PID_SPI_EN,  true);
     GPIO_ConfigurePin(SPI_CLK_GPIO_PORT, SPI_CLK_GPIO_PIN, OUTPUT, PID_SPI_CLK, false);

@@ -46,13 +46,15 @@
 
 // SPI FLASH and I2C EEPROM data offset
 #if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
-    #define APP_BOND_DB_DATA_OFFSET     (0x1E000)
+    #define APP_BOND_DB_DATA_OFFSET     (SPI_FLASH_DEFAULT_SIZE - 3*SPI_SECTOR_SIZE)//(0x1D000)
+	#define APP_USER_CONFIG_DATA_OFFSET (SPI_FLASH_DEFAULT_SIZE - 2*SPI_SECTOR_SIZE)//(0x1E000)
+	#define APP_ADC_ADJ_DATA_OFFSET 	(SPI_FLASH_DEFAULT_SIZE - 1*SPI_SECTOR_SIZE)//(0x1F000)
 #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
     #define APP_BOND_DB_DATA_OFFSET     (0x8000)
 #endif
 
 // Max number of bonded peers
-#define APP_BOND_DB_MAX_BONDED_PEERS    (5)
+#define APP_BOND_DB_MAX_BONDED_PEERS    (2)
 
 // Database version
 #define BOND_DB_VERSION                 (0x0001)
@@ -88,6 +90,17 @@ struct bond_db_data
     uint8_t auth;
 };
 
+struct user_config_data_t
+{
+    uint8_t valid;
+    uint8_t flags;
+	uint8_t beepEnable;
+	uint16_t warnMin;
+	uint16_t warnMax;
+//	uint16_t adj[16];
+};
+
+extern struct user_config_data_t user_config_data;
 /*
  * FUNCTION DECLARATIONS
  ****************************************************************************************
