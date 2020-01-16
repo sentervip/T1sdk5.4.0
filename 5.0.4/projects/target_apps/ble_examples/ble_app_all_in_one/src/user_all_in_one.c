@@ -41,6 +41,7 @@
 #include "app_easy_security.h"
 #include "app_task.h"
 
+
 #if (BLE_SPOTA_RECEIVER)
 #include "app_spotar.h"
 #if defined(__DA14583__) && (!SPOTAR_SPI_DISABLE)
@@ -74,9 +75,9 @@ timer_hnd app_param_update_request_timer_used __attribute__((section("retention_
 timer_hnd wakeup_led_ctrl_used				  __attribute__((section("retention_mem_area0"),zero_init));
 timer_hnd app_check_button_used				  __attribute__((section("retention_mem_area0"),zero_init));
 
-// lewis add
+// aizj add
 uint8_t app_connection_flag                    __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
-
+uint8_t app_connection_flag2                    __attribute__((section("retention_mem_area0"),zero_init));
 
 // Manufacturer Specific Data
 struct mnf_specific_data_ad_structure mnf_data __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
@@ -179,10 +180,8 @@ static void app_wakeup_led_ctrl_cb(void)
 				if(user_app_get_led_status() == 0)
 				{
 					user_app_enable_led();
-				}
-				else
-				{
-					user_app_disable_led();//led off
+				}else{
+					user_app_disable_led();
 				}
 				for(int m=0;m<200000;m++);
 			}
@@ -195,45 +194,47 @@ static void app_check_button_cb(void)
 	static uint16_t g_check_btnCb_count = 0;
 	
 	    g_check_btnCb_count++; 
-		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0){
+		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0 && (app_connection_flag == APP_BLE_ADV)){
 			powerOffCount++;
 			user_app_enable_led();	
 			arch_force_active_mode();
 			if(powerOffCount > 5){
-				powerOffCount = 0;				
+				powerOffCount = 0;
+				user_app_disable_led();
 				if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)			// lewis add
 				{
 					app_easy_timer_cancel(app_adv_data_update_timer_used);					
 					app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;		
-				}								
-				app_easy_gap_advertise_stop();
+				}				
 				
-				//arch_restore_sleep_mode();
+				app_easy_gap_advertise_stop();
 				user_app_disable_periphs();
-				user_app_disable_led();
+				//app_button_enable();
 				for(int i=0;i<10;i++)
-				arch_restore_sleep_mode();			
-				if(app_check_button_used != EASY_TIMER_INVALID_TIMER){
+					arch_restore_sleep_mode();			
+				if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
+				{
 					//app_easy_timer_cancel(app_check_button_used);
 					app_check_button_used = EASY_TIMER_INVALID_TIMER;
-				}				
-			}
-		}else if(app_connection_flag == APP_BLE_ADV && g_check_btnCb_count%5 == 0){ // blink led
+				}
+			}// >5
+			
+		}else if(app_connection_flag == APP_BLE_ADV && (g_check_btnCb_count%5) == 0){ // blink led		
+			powerOffCount = 0;
 			if(user_app_get_led_status() == 1 || g_check_btnCb_count%3 == 0)
 			{
-				user_app_disable_led();//led off
+				user_app_disable_led();
 			}
 			else
 			{
 				user_app_enable_led(); 
 			}
-			for(int m=0;m<200000;m++);
 			
 		}else{
 			powerOffCount = 0;
-			user_app_disable_led();
 			arch_restore_sleep_mode();
 		}
+		// poll now?
 		if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
 		{
 			app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_check_button_cb);	
@@ -411,10 +412,9 @@ void on_spotar_status_change( const uint8_t spotar_event)
 
 void user_app_connection(uint8_t connection_idx, struct gapc_connection_req_ind const *param)
 {
+	app_connection_flag = APP_BLE_CONNECTED;
+	app_connection_flag2 = 1;
     default_app_on_connection(connection_idx, param);
-	
-		
-	
     if (app_env[connection_idx].conidx != GAP_INVALID_CONIDX)
     {
         app_connection_idx = connection_idx;
@@ -445,7 +445,6 @@ void user_app_connection(uint8_t connection_idx, struct gapc_connection_req_ind 
         }
         user_app_enable_periphs();
         arch_set_extended_sleep();
-		app_connection_flag = APP_BLE_CONNECTED;
 		user_app_disable_led();
 		
     }
@@ -454,7 +453,7 @@ void user_app_connection(uint8_t connection_idx, struct gapc_connection_req_ind 
 void user_app_disconnect(struct gapc_disconnect_ind const *param)
 {
 	
-		
+		app_connection_flag2 = 0;
 	
     // Cancel the parameter update request timer
     if (app_param_update_request_timer_used != EASY_TIMER_INVALID_TIMER)

@@ -26,7 +26,7 @@
 #include "gpio.h"
 #include "uart.h"                    // UART initialization
 
-extern uint8_t app_connection_flag;
+extern uint8_t app_connection_flag,app_connection_flag2;
 
 /**
  ****************************************************************************************
@@ -67,7 +67,7 @@ void set_pad_functions(void)        // set gpio port function mode
 	GPIO_ConfigurePin(GPIO_PORT_0, GPIO_PIN_0, INPUT, PID_ADC, false );
 	GPIO_ConfigurePin(GPIO_PORT_0, GPIO_PIN_2, INPUT, PID_ADC, false );
 	
-	if(app_connection_flag == APP_BLE_CONNECTED)
+	if(app_connection_flag2 == APP_BLE_CONNECTED)
 		GPIO_ConfigurePin(GPIO_POWER_PORT, GPIO_POWER_PIN, OUTPUT, PID_GPIO, true);
 	else
 		GPIO_ConfigurePin(GPIO_POWER_PORT, GPIO_POWER_PIN, OUTPUT, PID_GPIO, false);		
