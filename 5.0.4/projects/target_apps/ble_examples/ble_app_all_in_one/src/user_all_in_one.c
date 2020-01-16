@@ -162,6 +162,7 @@ static void app_wakeup_cb(void)
     if (ke_state_get(TASK_APP) == APP_CONNECTABLE)
     {
 			user_app_adv_start();
+			
     }
 }
 static void app_wakeup_led_ctrl_cb(void)
@@ -191,24 +192,20 @@ static void app_wakeup_led_ctrl_cb(void)
 static void app_check_button_cb(void)
 {
 	static uint16_t powerOffCount = 0;	
+	static uint16_t g_check_btnCb_count = 0;
 	
-		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0)
-		{
+	    g_check_btnCb_count++; 
+		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0){
 			powerOffCount++;
-			
-			user_app_enable_led();
-				
+			user_app_enable_led();	
 			arch_force_active_mode();
-			if(powerOffCount > 5)
-			{
-				powerOffCount = 0;
-				
+			if(powerOffCount > 5){
+				powerOffCount = 0;				
 				if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)			// lewis add
 				{
 					app_easy_timer_cancel(app_adv_data_update_timer_used);					
 					app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;		
-				}				
-				
+				}								
 				app_easy_gap_advertise_stop();
 				
 				//arch_restore_sleep_mode();
@@ -216,16 +213,23 @@ static void app_check_button_cb(void)
 				user_app_disable_led();
 				for(int i=0;i<10;i++)
 				arch_restore_sleep_mode();			
-				if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
-				{
+				if(app_check_button_used != EASY_TIMER_INVALID_TIMER){
 					//app_easy_timer_cancel(app_check_button_used);
 					app_check_button_used = EASY_TIMER_INVALID_TIMER;
-				}
-				
+				}				
 			}
-		}
-		else
-		{
+		}else if(app_connection_flag == APP_BLE_ADV && g_check_btnCb_count%5 == 0){ // blink led
+			if(user_app_get_led_status() == 1 || g_check_btnCb_count%3 == 0)
+			{
+				user_app_disable_led();//led off
+			}
+			else
+			{
+				user_app_enable_led(); 
+			}
+			for(int m=0;m<200000;m++);
+			
+		}else{
 			powerOffCount = 0;
 			user_app_disable_led();
 			arch_restore_sleep_mode();
@@ -352,6 +356,7 @@ static void app_add_ad_struct(struct gapm_start_advertise_cmd *cmd, void *ad_str
 void user_app_adv_start(void)
 {
     // Schedule the next advertising data update
+	app_connection_flag = APP_BLE_ADV;
     app_adv_data_update_timer_used = app_easy_timer(APP_ADV_DATA_UPDATE_TO, adv_data_update_timer_cb);
 
     struct gapm_start_advertise_cmd* cmd;
@@ -408,7 +413,7 @@ void user_app_connection(uint8_t connection_idx, struct gapc_connection_req_ind 
 {
     default_app_on_connection(connection_idx, param);
 	
-		app_connection_flag = 1;
+		
 	
     if (app_env[connection_idx].conidx != GAP_INVALID_CONIDX)
     {
@@ -440,13 +445,16 @@ void user_app_connection(uint8_t connection_idx, struct gapc_connection_req_ind 
         }
         user_app_enable_periphs();
         arch_set_extended_sleep();
+		app_connection_flag = APP_BLE_CONNECTED;
+		user_app_disable_led();
+		
     }
 }
 
 void user_app_disconnect(struct gapc_disconnect_ind const *param)
 {
 	
-		app_connection_flag = 0;
+		
 	
     // Cancel the parameter update request timer
     if (app_param_update_request_timer_used != EASY_TIMER_INVALID_TIMER)
@@ -680,6 +688,7 @@ void user_catch_rest_hndl(ke_msg_id_t const msgid,
 void user_app_adv_undirect_complete(const uint8_t status)
 {
     // Disable wakeup for BLE and timer events. Only external (GPIO) wakeup events can wakeup processor.
+	app_connection_flag = APP_BLE_TIMEOUT_IDLE;
     if (status == GAP_ERR_CANCELED)
     {
 		user_app_disable_periphs();

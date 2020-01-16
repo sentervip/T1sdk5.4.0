@@ -174,8 +174,16 @@
 
     #define GPIO_BUTTON_PORT  GPIO_PORT_1
     #define GPIO_BUTTON_PIN   GPIO_PIN_3	
+//    #define GPIO_BUTTON_PORT  GPIO_PORT_0
+//    #define GPIO_BUTTON_PIN   GPIO_PIN_7	
 #endif
 
+//BLE STATUS
+enum APP_BLE_STAT{
+    APP_BLE_ADV=0, // ble advise now
+	APP_BLE_CONNECTED, //  app connected already
+	APP_BLE_TIMEOUT_IDLE,// ble undirect and idle
+};
 /****************************************************************************************/
 /* I2C EEPROM GPIO assignment                                                           */
 /****************************************************************************************/

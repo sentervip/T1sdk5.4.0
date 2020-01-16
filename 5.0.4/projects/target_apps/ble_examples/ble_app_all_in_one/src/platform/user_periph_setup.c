@@ -67,7 +67,7 @@ void set_pad_functions(void)        // set gpio port function mode
 	GPIO_ConfigurePin(GPIO_PORT_0, GPIO_PIN_0, INPUT, PID_ADC, false );
 	GPIO_ConfigurePin(GPIO_PORT_0, GPIO_PIN_2, INPUT, PID_ADC, false );
 	
-	if(app_connection_flag)
+	if(app_connection_flag == APP_BLE_CONNECTED)
 		GPIO_ConfigurePin(GPIO_POWER_PORT, GPIO_POWER_PIN, OUTPUT, PID_GPIO, true);
 	else
 		GPIO_ConfigurePin(GPIO_POWER_PORT, GPIO_POWER_PIN, OUTPUT, PID_GPIO, false);		

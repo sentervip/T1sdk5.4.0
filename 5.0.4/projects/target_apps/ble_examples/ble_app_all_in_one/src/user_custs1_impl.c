@@ -438,6 +438,7 @@ static void user_app_button_press_cb(void)
     ke_msg_send(req);
     // Configure next button event
     user_app_set_button_event(next_btn_event);
+	arch_set_extended_sleep();
 }
 
 /**
@@ -605,6 +606,7 @@ void user_app_enable_periphs(void)
 	user_app_env.custs1_adcval2_enabled = 1;
 	user_app_get_bat_val();
 	user_app_get_adj_val();
+	arch_set_extended_sleep(); // by aizj add for bugs: long press btn 800uA on connected 
 }
 
 /**
