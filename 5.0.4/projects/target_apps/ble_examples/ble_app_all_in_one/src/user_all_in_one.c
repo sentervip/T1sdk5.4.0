@@ -209,12 +209,11 @@ static void app_check_button_cb(void)
 				
 				app_easy_gap_advertise_stop();
 				user_app_disable_periphs();
-				//app_button_enable();
 				for(int i=0;i<10;i++)
-					arch_restore_sleep_mode();			
+				    arch_restore_sleep_mode();			
 				if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
 				{
-					//app_easy_timer_cancel(app_check_button_used);
+					app_easy_timer_cancel(app_check_button_used);
 					app_check_button_used = EASY_TIMER_INVALID_TIMER;
 				}
 			}// >5
@@ -232,13 +231,15 @@ static void app_check_button_cb(void)
 			
 		}else{
 			powerOffCount = 0;
-			arch_restore_sleep_mode();
+      arch_restore_sleep_mode();
+			
 		}
 		// poll now?
 		if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
 		{
 			app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_check_button_cb);	
 		}
+		
 	
 }
 /**
@@ -694,6 +695,11 @@ void user_app_adv_undirect_complete(const uint8_t status)
 		user_app_disable_led();
         arch_ble_ext_wakeup_on();
 
+		if(app_check_button_used != EASY_TIMER_INVALID_TIMER)							// aizj add
+		{
+			app_easy_timer_cancel(app_check_button_used);
+			app_check_button_used = EASY_TIMER_INVALID_TIMER;
+		}	
         // Configure wakeup button
         app_button_enable();
     }

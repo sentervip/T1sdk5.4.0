@@ -456,7 +456,7 @@ static void user_app_get_bat_val(void)
         //adc_calibrate();
         //adc_sample = (uint16_t)adc_get_vbat_sample(false);
 		adc_sample = user_get_adc2();
-		len = user_hex2utf8(adc_sample,3,data);
+		len = user_hex2utf8(adc_sample,3,data); 
 
         struct custs1_val_set_req *req = KE_MSG_ALLOC_DYN(CUSTS1_VAL_SET_REQ,
                                                           TASK_CUSTS1,
@@ -601,7 +601,7 @@ void user_app_enable_periphs(void)
     user_app_button_press_cb();
     // Get initial ADC value if enabled
     
-	timer_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_adcval1_timer_cb_handler);
+ 	timer_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_adcval1_timer_cb_handler);
 //	app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
 	user_app_env.custs1_adcval2_enabled = 1;
 	user_app_get_bat_val();
