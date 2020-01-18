@@ -37,6 +37,7 @@ struct app_proj_env_tag user_app_env __attribute__((section("retention_mem_area0
 static uint16_t user_get_adc1(void);
 static uint16_t user_get_adc2(void);
 static uint8_t user_hex2utf8(int16_t in,uint8_t dot,uint8_t *out);
+void user_app_pwm_timer_cb_handler();
 /*
  * DEFINES
  ****************************************************************************************
@@ -236,6 +237,9 @@ void user_app_adcval1_timer_cb_handler()
 	tmp -= tmp1;	
 	tmp1 += tmp *0.2f;
 	
+	//if(tmp1 > 0x0f0a && ke_state_get(TASK_APP) == APP_CONNECTED) // >38.50 C
+	//		app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
+
 	/*uint16_t adc_sample = 3751+kk;//user_get_adc1();
 	if(++kk > 100)
 		kk = 0;*/
@@ -261,15 +265,15 @@ void user_app_pwm_timer_cb_handler()
 	{
 		i = 1;
 		user_app_enable_pwm();
-		GPIO_SetActive( GPIO_PORT_1, GPIO_PIN_0);//led on
+		//GPIO_SetActive( GPIO_PORT_1, GPIO_PIN_0);//led on
 	}
 	else
 	{
 		i = 0;
 		 user_app_disable_pwm();
-		GPIO_SetInactive( GPIO_PORT_1, GPIO_PIN_0);//led off
+		//GPIO_SetInactive( GPIO_PORT_1, GPIO_PIN_0);//led off
 	}
-	app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
+	//app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
 }
 /**
  ****************************************************************************************
@@ -283,7 +287,7 @@ static void user_app_disable_pwm(void)
     {
         user_app_env.custs1_pwm_enabled = 0;
 
-        arch_restore_sleep_mode();
+        arch_restore_sleep_mode();   
 #if 0
         timer0_stop();
         set_tmr_enable(CLK_PER_REG_TMR_DISABLED);
