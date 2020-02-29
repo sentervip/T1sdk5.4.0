@@ -97,7 +97,7 @@ struct user_config_data_t
 	uint8_t beepEnable;
 	uint16_t warnMin;
 	uint16_t warnMax;
-//	uint16_t adj[16];
+//	uint16_t adj[16];///
 };
 
 extern struct user_config_data_t user_config_data;
