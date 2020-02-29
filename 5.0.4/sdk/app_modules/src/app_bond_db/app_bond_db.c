@@ -53,6 +53,7 @@ struct bond_db
 };
 
 struct user_config_data_t user_config_data;
+struct user_tempadj_data_t user_tempadj_data;
 /*
  * GLOBAL VARIABLE DEFINITIONS
  ****************************************************************************************
@@ -87,7 +88,9 @@ static void bond_db_load_flash(void)
     spi_flash_read_data((uint8_t *)&bdb, APP_BOND_DB_DATA_OFFSET, sizeof(struct bond_db));
 
 	spi_flash_read_data((uint8_t *)&user_config_data, APP_USER_CONFIG_DATA_OFFSET, sizeof(struct user_config_data_t));
-	
+
+	spi_flash_read_data((uint8_t *)&user_tempadj_data, APP_USER_ADJ_DATA_OFFSET, sizeof(struct user_tempadj_data_t));
+		
     spi_release();
 }
 
@@ -180,21 +183,21 @@ void bond_usercfgdata_store_flash(void)
 
     spi_release();
 }
-//void bond_userdata_store_flash(void)
-//{
-//    int8_t ret;
-//	uint32_t offset = APP_USER_ADJ_DATA_OFFSET;
-//	
-//    bond_db_spi_flash_init();
+void bond_useradjdata_store_flash(void)
+{
+    int8_t ret;
+	uint32_t offset = APP_USER_ADJ_DATA_OFFSET;
+	
+    bond_db_spi_flash_init();
 
-//    ret = user_cfgdata_erase_flash_sectors(offset);
-//    if (ret == ERR_OK)
-//    {
-//        spi_flash_write_data((uint8_t *)&user_config_data, offset, sizeof(struct user_config_data_t));
-//    }
+    ret = user_cfgdata_erase_flash_sectors(offset);
+    if (ret == ERR_OK)
+    {
+        spi_flash_write_data((uint8_t *)&user_tempadj_data, offset, sizeof(struct user_tempadj_data_t));
+    }
 
-//    spi_release();
-//}
+    spi_release();
+}
 #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
 
 static void bond_db_load_eeprom(void)

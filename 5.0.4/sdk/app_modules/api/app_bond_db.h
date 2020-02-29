@@ -98,12 +98,20 @@ struct user_config_data_t
 	uint8_t beepEnable;
 	uint16_t warnMin;
 	uint16_t warnMax;
-	float adjData1;
-	float adjData2;
+	float adjData1;//Factory configuration data
+	float adjTemp;//User configuration data
 //	uint16_t adj[16];
 };
-
+struct user_tempadj_data_t
+{
+    uint8_t valid;
+    uint8_t flags;
+	float adjData;//User configuration adj data
+	float adjTemp;//User configuration temp	
+	float curTemp;//debug
+};
 extern struct user_config_data_t user_config_data;
+extern struct user_tempadj_data_t user_tempadj_data;
 /*
  * FUNCTION DECLARATIONS
  ****************************************************************************************
@@ -147,6 +155,8 @@ const struct bond_db_data* bond_db_lookup_by_ediv(const struct rand_nb *rand_nb,
 void bond_db_clear(void);
 
 void bond_usercfgdata_store_flash(void);
+
+void bond_useradjdata_store_flash(void);
 
 /// @} APP_BOND_DB
 
