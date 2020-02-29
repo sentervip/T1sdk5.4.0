@@ -109,6 +109,8 @@ struct user_tempadj_data_t
 	float adjData;//User configuration adj data
 	float adjTemp;//User configuration temp	
 	float curTemp;//debug
+	float varA;//debug
+	float varB;//debug
 };
 extern struct user_config_data_t user_config_data;
 extern struct user_tempadj_data_t user_tempadj_data;

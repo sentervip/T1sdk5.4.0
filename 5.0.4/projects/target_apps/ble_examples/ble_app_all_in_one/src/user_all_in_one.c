@@ -191,43 +191,107 @@ static void app_wakeup_led_ctrl_cb(void)
 }
 static void cali_param_update_cb(void)
 {
-	static uint8_t initFlag = 0;
-	static uint16_t len_count = 0,tmp1 = 0,sample;
-	float tmp,fcoe = 0.2f;
+	static uint8_t initFlag = 0,states = 1;
+	static float tmp1 = 0,varA = 0,varB = 100;
+	uint16_t len_count = 0,sample,dataSize = 100;
+	float tmp,fcoe = 0.1f;
+	uint32_t stateCnt = 400000,caliCnt = 0;
 	
-	len_count++;
+	
 	if(initFlag == 0x00)
 	{
 		initFlag = 0x01;
+		user_tempadj_data.adjTemp = 38.00f;
+		user_tempadj_data.adjData = 1.0f;
+		user_config_data.adjData1 = 1.0f;
 		user_app_enable_periphs();
 		arch_set_extended_sleep();
-		user_app_disable_led();
+		GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
 	}
 	
-//	arch_force_active_mode();
+	arch_force_active_mode();
 	user_config_data.flags = 0x02;
 	
-	sample = user_get_adc1();
-	tmp = sample * user_config_data.adjData1;//4.378f;
-	tmp -= tmp1;	
-	tmp1 += tmp * fcoe;	
-	user_tempadj_data.curTemp = tmp1 / 100.0f; 	
-	
-	if(user_app_get_led_status())
+	while(states)
 	{
-		//user_app_disable_led();
-		GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
-	}
-	else
-	{
-		//user_app_enable_led();
-		GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);
+		len_count++;
+		//if(len_count == 10)
+		{
+			len_count = 0;
+			sample = user_get_adc1();
+			tmp = sample * user_config_data.adjData1;
+			tmp -= tmp1;	
+			tmp1 += tmp * fcoe;	
+			user_tempadj_data.curTemp = tmp1 / 100.0f; 
+			
+			if(user_tempadj_data.curTemp != 0)
+			{
+				varA += (user_tempadj_data.curTemp - varA)/dataSize;
+				varB = (dataSize-2)*(varB)/(dataSize-1)+(user_tempadj_data.curTemp - varA)*(user_tempadj_data.curTemp - varA)/dataSize;	
+				user_tempadj_data.varA = varA;
+				user_tempadj_data.varB = varB;
+			}
+			
+			if((user_tempadj_data.varB < 0.20f) && (states == 0x01))
+			{
+				stateCnt = 100000;
+				caliCnt++;
+				if(caliCnt > 10)
+				{
+					user_config_data.adjTemp = user_tempadj_data.adjTemp;
+					user_config_data.adjData1 = user_config_data.adjTemp / user_tempadj_data.curTemp;
+					user_config_data.valid = 1;
+					user_config_data.flags = 1;
+					
+					bond_usercfgdata_store_flash();
+					
+					user_tempadj_data.valid = 1;
+					user_tempadj_data.flags = 1;
+					bond_useradjdata_store_flash();
+					
+					states = 0x02;
+				}
+			}
+			else
+			{
+				caliCnt = 0;
+				stateCnt = 200000;
+			}
+		}
+		if(user_config_data.flags == 0x01)//校准完成,LED常亮
+		{
+			GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);
+		}
+		else if(user_config_data.flags == 0x02)
+		{
+			if(user_app_get_led_status())
+			{
+				//user_app_disable_led();
+				GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
+			}
+			else
+			{
+				//user_app_enable_led();
+				GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);
+			}
+			for(int m=0;m<stateCnt;m++);
+		}
+		else //校准失败,LED熄灭
+		{
+			GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
+		}
+		
+		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0)
+		{
+			states = 0x00; 
+			GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
+		}
 	}
 				
-	if(cali_param_update_used != EASY_TIMER_INVALID_TIMER)
-	{
-		cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY,cali_param_update_cb);
-	}	
+//	if(cali_param_update_used != EASY_TIMER_INVALID_TIMER)
+//	{
+//		cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY,cali_param_update_cb);
+//	}	
 }
 static void app_check_button_cb(void)
 {
@@ -262,7 +326,7 @@ static void app_check_button_cb(void)
 			}
 			else
 			{
-				if(user_config_data.valid == 0x01)
+				if(user_config_data.valid == 0x00)
 				{
 					if(user_config_data.flags != 0x02)
 					{

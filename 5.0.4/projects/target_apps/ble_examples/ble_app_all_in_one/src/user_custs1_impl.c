@@ -652,7 +652,7 @@ void user_app_enable_periphs(void)
 	user_app_get_adj_val();
 	arch_set_extended_sleep(); // by aizj add for bugs: long press btn 800uA on connected 
 	
-	if(user_config_data.valid == 0x01) //温度校准标志位
+	if(user_config_data.valid == 0x01) //工厂温度校准标志位
 	{
 		if(user_tempadj_data.valid == 0x01)//用户校准数据标志位
 		{
@@ -663,9 +663,12 @@ void user_app_enable_periphs(void)
 	{
 		memset(&user_config_data,0,sizeof(user_config_data));
 		memset(&user_tempadj_data,0,sizeof(user_tempadj_data));
+		
 		user_config_data.adjData1 = 4.738f;//工厂校准数据
 		user_tempadj_data.adjData = 1.0f;
-		user_config_data.adjTemp = 38.00f;//用户校准温度数据
+		user_config_data.adjTemp = 38.00f;//用户校准温度数据-38
+//		bond_usercfgdata_store_flash();
+//		bond_useradjdata_store_flash();  
 	}
 }
 
