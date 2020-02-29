@@ -165,7 +165,7 @@ static void bond_db_clear_flash(void)
 
     spi_release();
 }
-void bond_cfgdata_store_flash(void)
+void bond_usercfgdata_store_flash(void)
 {
     int8_t ret;
 	uint32_t offset = APP_USER_CONFIG_DATA_OFFSET;
@@ -180,21 +180,21 @@ void bond_cfgdata_store_flash(void)
 
     spi_release();
 }
-void bond_adjdata_store_flash(void)
-{
-    int8_t ret;
-	uint32_t offset = APP_ADC_ADJ_DATA_OFFSET;
-	
-    bond_db_spi_flash_init();
+//void bond_userdata_store_flash(void)
+//{
+//    int8_t ret;
+//	uint32_t offset = APP_USER_ADJ_DATA_OFFSET;
+//	
+//    bond_db_spi_flash_init();
 
-    ret = user_cfgdata_erase_flash_sectors(offset);
-    if (ret == ERR_OK)
-    {
-        spi_flash_write_data((uint8_t *)&user_config_data, offset, sizeof(struct user_config_data_t));
-    }
+//    ret = user_cfgdata_erase_flash_sectors(offset);
+//    if (ret == ERR_OK)
+//    {
+//        spi_flash_write_data((uint8_t *)&user_config_data, offset, sizeof(struct user_config_data_t));
+//    }
 
-    spi_release();
-}
+//    spi_release();
+//}
 #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
 
 static void bond_db_load_eeprom(void)
@@ -225,20 +225,20 @@ static void bond_db_store_eeprom(void)
 
 static inline void bond_db_load_ext(void)
 {
-    #if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
+#if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
     bond_db_load_flash();
-    #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
+#elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
     bond_db_load_eeprom();
-    #endif
+#endif
 }
 
 static inline void bond_db_store_ext(void)
 {
-    #if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
+#if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
     bond_db_store_flash();
-    #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
+#elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
     bond_db_store_eeprom();
-    #endif
+#endif
 }
 
 static inline void bond_db_clear_ext(void)

@@ -1,4 +1,4 @@
-;#<FEEDBACK># ARM Linker, 5060020: Last Updated: Sat Feb 29 13:31:55 2020
+;#<FEEDBACK># ARM Linker, 5060020: Last Updated: Sat Feb 29 14:19:29 2020
 ;VERSION 0.2
 ;FILE adc.o
 adc_disable <= USED 0
@@ -18,8 +18,6 @@ app_easy_gap_start_connection_to_set <= USED 0
 app_easy_gap_undirected_advertise_with_timeout_start <= USED 0
 app_timer_set <= USED 0
 ;FILE app_bond_db.o
-bond_adjdata_store_flash <= USED 0
-bond_cfgdata_store_flash <= USED 0
 bond_db_lookup_by_ediv <= USED 0
 bond_db_store <= USED 0
 ;FILE app_customs.o

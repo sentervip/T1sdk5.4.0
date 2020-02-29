@@ -261,7 +261,7 @@ static void app_button_press_cb(void)
         arch_ble_force_wakeup();
         arch_ble_ext_wakeup_off();
         app_easy_wakeup();
-				wakeup_led_ctrl_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_wakeup_led_ctrl_cb);
+		wakeup_led_ctrl_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_wakeup_led_ctrl_cb);
     }
 }
 

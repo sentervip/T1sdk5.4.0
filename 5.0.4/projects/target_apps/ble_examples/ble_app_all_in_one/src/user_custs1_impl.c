@@ -25,6 +25,7 @@
 #include "app_api.h"
 #include "gpio.h"
 #include "pwm.h"
+#include "app_bond_db.h"
 #include "user_all_in_one.h"
 #include "user_custs1_def.h"
 #include "user_custs1_impl.h"
@@ -37,6 +38,7 @@ struct app_proj_env_tag user_app_env __attribute__((section("retention_mem_area0
 static uint16_t user_get_adc1(void);
 static uint16_t user_get_adc2(void);
 static uint8_t user_hex2utf8(int16_t in,uint8_t dot,uint8_t *out);
+static void user_app_get_adj_val(void);
 /*
  * DEFINES
  ****************************************************************************************
@@ -53,7 +55,7 @@ static uint8_t user_hex2utf8(int16_t in,uint8_t dot,uint8_t *out);
  */
 
 ke_msg_id_t timer_used = 0xFFFF;
-uint16_t waringTmp = 3880;
+//uint16_t waringTmp = 3880;
 //const uint16_t notes[APP_NOTES_NUM] =
 //{
 //    1046,987,767,932,328,880,830,609,783,991,739,989,698,456,659,255,622,254,587,554,365,523,251,493,466,440
@@ -158,10 +160,25 @@ void user_custs1_long_val_wr_ind_handler(ke_msg_id_t const msgid,
                                           ke_task_id_t const dest_id,
                                           ke_task_id_t const src_id)
 {
-	uint8_t val[6];
+	uint8_t val[8];
+	float valf;
 	memcpy(val, &param->value[0], param->length);
-	waringTmp = (val[0] - 0x30)*1000 + (val[1] - 0x30)*100 + \
-				(val[3] - 0x30)*10 + (val[4] - 0x30);
+	if(val[1] == '.')
+	{
+		valf = (val[0] - 0x30)*1000 + (val[2] - 0x30)*100 + \
+											(val[3] - 0x30)*10 + (val[4] - 0x30);//+ (val[4] - 0x30);
+		user_config_data.adjData1 = valf / 1000.0f; 
+	}
+	else if((val[0] == 's') && (val[1] == 'a') && (val[2] == 'v') && (val[3] == 'e'))
+	{
+		user_config_data.valid = 0x01;//校准标志位
+		user_config_data.flags = 0x01;		
+		bond_usercfgdata_store_flash();
+	}
+	else if((val[0] == 'r') && (val[1] == 'e') && (val[2] == 'a') && (val[3] == 'd'))
+	{
+		user_app_get_adj_val();
+	}
 	
 }
 /*
@@ -226,9 +243,10 @@ void user_app_adcval1_timer_cb_handler()
     //static uint8_t kk =0;
 	uint8_t data[6] = {0,0,0,0,0,0},len;
 	static uint16_t tmp1 = 0;
-	float tmp = 0;
+	float tmp;
+	//float adjcfg = user_config_data.adjData1 / 1000.0f;
 	uint16_t sample = user_get_adc1();
-	tmp = sample * 4.378f;
+	tmp = sample * user_config_data.adjData1;//4.378f;
 	if(tmp1 == 0)
 	{
 		tmp1 = tmp;
@@ -475,7 +493,7 @@ static void user_app_get_bat_val(void)
 
 static void user_app_get_adj_val(void)
 {       
-		uint16_t adj = waringTmp;//3750; 
+		uint16_t adj = user_config_data.adjData1 * 1000;
 		uint8_t data[6] = {0,0,0,0,0,0},len;
         //adc_calibrate();
         //adc_sample = (uint16_t)adc_get_vbat_sample(false);
@@ -490,7 +508,7 @@ static void user_app_get_adj_val(void)
 
        req->conhdl = app_env->conhdl;
        req->handle = CUST1_IDX_LONG_VALUE_VAL;
-       req->length = user_hex2utf8(adj,2,data);
+       req->length = user_hex2utf8(adj,3,data);
        memcpy(req->value, data, req->length);
 
        ke_msg_send(req);
@@ -607,6 +625,17 @@ void user_app_enable_periphs(void)
 	user_app_get_bat_val();
 	user_app_get_adj_val();
 	arch_set_extended_sleep(); // by aizj add for bugs: long press btn 800uA on connected 
+	
+	if(user_config_data.valid == 0x01) //温度校准标志位
+	{
+		
+	}
+	else//未校准，应写入默认数据
+	{
+		memset(&user_config_data,0,sizeof(user_config_data));
+		user_config_data.adjData1 = 4.738;//工厂校准数据
+		user_config_data.adjData2 = 0;//用户校准数据，保留
+	}
 }
 
 /**

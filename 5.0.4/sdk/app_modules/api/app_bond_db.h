@@ -48,7 +48,7 @@
 #if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
     #define APP_BOND_DB_DATA_OFFSET     (SPI_FLASH_DEFAULT_SIZE - 3*SPI_SECTOR_SIZE)//(0x1D000)
 	#define APP_USER_CONFIG_DATA_OFFSET (SPI_FLASH_DEFAULT_SIZE - 2*SPI_SECTOR_SIZE)//(0x1E000)
-	#define APP_ADC_ADJ_DATA_OFFSET 	(SPI_FLASH_DEFAULT_SIZE - 1*SPI_SECTOR_SIZE)//(0x1F000)
+	#define APP_USER_ADJ_DATA_OFFSET 	(SPI_FLASH_DEFAULT_SIZE - 1*SPI_SECTOR_SIZE)//(0x1F000)
 #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
     #define APP_BOND_DB_DATA_OFFSET     (0x8000)
 #endif
@@ -94,10 +94,13 @@ struct user_config_data_t
 {
     uint8_t valid;
     uint8_t flags;
+	uint8_t dataLen;
 	uint8_t beepEnable;
 	uint16_t warnMin;
 	uint16_t warnMax;
-//	uint16_t adj[16];///
+	float adjData1;
+	float adjData2;
+//	uint16_t adj[16];
 };
 
 extern struct user_config_data_t user_config_data;
@@ -142,6 +145,8 @@ const struct bond_db_data* bond_db_lookup_by_ediv(const struct rand_nb *rand_nb,
  ****************************************************************************************
  */
 void bond_db_clear(void);
+
+void bond_usercfgdata_store_flash(void);
 
 /// @} APP_BOND_DB
 
