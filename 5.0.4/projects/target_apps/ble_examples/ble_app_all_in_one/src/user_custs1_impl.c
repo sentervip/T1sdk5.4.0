@@ -201,6 +201,12 @@ void user_custs1_long_val_wr_ind_handler(ke_msg_id_t const msgid,
 		memset(&user_tempadj_data,0,sizeof(user_tempadj_data));
 		bond_useradjdata_store_flash();
 	}
+	else if(strcmp(val,"clear9") == 0)
+	{
+		memset(&user_config_data,0,sizeof(user_config_data));
+		user_config_data.adjData1 = 1.0f;
+		bond_usercfgdata_store_flash();
+	}
 	
 }
 /*
@@ -268,7 +274,14 @@ void user_app_adcval1_timer_cb_handler()
 	float tmp,fcoe = 0.2f;
 	//float adjcfg = user_config_data.adjData1 / 1000.0f;
 	uint16_t sample = user_get_adc1();
-	tmp = sample * user_config_data.adjData1;//4.378f;
+	if(user_config_data.adjData1)
+	{
+		tmp = sample * user_config_data.adjData1;//4.378f;
+	}
+	else
+	{
+		tmp = sample;
+	}
 
 //	fcoe = user_config_data.flags == 0x00 ? 0.5f : 0.1f;
 	if(tmp1 == 0)
