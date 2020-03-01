@@ -191,26 +191,27 @@ static void app_wakeup_led_ctrl_cb(void)
 }
 static void cali_param_update_cb(void)
 {
-	static uint8_t initFlag = 0,states = 1;
-	static float tmp1 = 0,varA = 0,varB = 100;
+	uint8_t initFlag = 0,states = 1;
+	float tmp1 = 0,varA = 0,varB = 100;
 	uint16_t len_count = 0,sample,dataSize = 100;
 	float tmp,fcoe = 0.1f;
 	uint32_t stateCnt = 400000,caliCnt = 0;
 	
 	
-	if(initFlag == 0x00)
+	//if(initFlag == 0x00)
 	{
-		initFlag = 0x01;
-		user_tempadj_data.adjTemp = 38.00f;
-		user_tempadj_data.adjData = 1.0f;
-		user_config_data.adjData1 = 1.0f;
+	//	initFlag = 0x01;
 		user_app_enable_periphs();
 		arch_set_extended_sleep();
 		GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
+		user_tempadj_data.adjTemp = 38.00f;
+		user_tempadj_data.adjData = 1.0f;
+		user_config_data.adjData1 = 1.0f;
+		user_config_data.flags = 0x02;		
 	}
 	
-	arch_force_active_mode();
-	user_config_data.flags = 0x02;
+//	arch_force_active_mode();
+	
 	
 	while(states)
 	{
@@ -286,8 +287,7 @@ static void cali_param_update_cb(void)
 			states = 0x00; 
 			GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
 		}
-	}
-				
+	}			
 //	if(cali_param_update_used != EASY_TIMER_INVALID_TIMER)
 //	{
 //		cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY,cali_param_update_cb);
@@ -326,7 +326,7 @@ static void app_check_button_cb(void)
 			}
 			else
 			{
-				if(user_config_data.valid == 0x00)
+				if(user_config_data.valid != 0x01)
 				{
 					if(user_config_data.flags != 0x02)
 					{
