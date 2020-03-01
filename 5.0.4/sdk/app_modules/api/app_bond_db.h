@@ -114,6 +114,8 @@ struct user_tempadj_data_t
 };
 extern struct user_config_data_t user_config_data;
 extern struct user_tempadj_data_t user_tempadj_data;
+
+
 /*
  * FUNCTION DECLARATIONS
  ****************************************************************************************

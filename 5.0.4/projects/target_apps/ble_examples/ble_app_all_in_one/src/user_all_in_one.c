@@ -210,12 +210,16 @@ static void cali_param_update_cb(void)
 		user_config_data.flags = 0x02;		
 	}
 	
-//	arch_force_active_mode();
+	
 	
 	
 	while(states)
 	{
 		len_count++;
+		wdg_freeze();            // Stop WDOG
+		//arch_force_active_mode();
+//		arch_set_extended_sleep();
+//		GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
 		//if(len_count == 10)
 		{
 			len_count = 0;
@@ -233,7 +237,7 @@ static void cali_param_update_cb(void)
 				user_tempadj_data.varB = varB;
 			}
 			
-			if((user_tempadj_data.varB < 0.20f) && (states == 0x01))
+			if((user_tempadj_data.varB < 0.2f) && (states == 0x01))
 			{
 				stateCnt = 100000;
 				caliCnt++;
@@ -244,6 +248,7 @@ static void cali_param_update_cb(void)
 					user_config_data.valid = 1;
 					user_config_data.flags = 1;
 					
+
 					bond_usercfgdata_store_flash();
 					
 					user_tempadj_data.valid = 1;

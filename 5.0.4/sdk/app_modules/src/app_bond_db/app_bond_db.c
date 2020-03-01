@@ -52,15 +52,17 @@ struct bond_db
     uint16_t end_hdr;
 };
 
-struct user_config_data_t user_config_data;
-struct user_tempadj_data_t user_tempadj_data;
+
 /*
  * GLOBAL VARIABLE DEFINITIONS
  ****************************************************************************************
  */
 
 static struct bond_db bdb __attribute__((section("retention_mem_area0"), zero_init)); //@RETENTION MEMORY
-
+struct user_config_data_t user_config_data __attribute__((section("retention_mem_area0"), zero_init)); //@RETENTION MEMORY
+struct user_tempadj_data_t user_tempadj_data __attribute__((section("retention_mem_area0"), zero_init)); //@RETENTION MEMORY
+//struct user_config_data_t user_config_data;
+//struct user_tempadj_data_t user_tempadj_data;
 /*
  * FUCTION DEFINITIONS
  ****************************************************************************************
@@ -119,7 +121,7 @@ static int8_t bond_db_erase_flash_sectors(void)
     }
     return ret;
 }
-static int8_t user_cfgdata_erase_flash_sectors(uint32_t flash)
+static int8_t user_cfgdata_erase_flash_sectors(uint32_t flashOffset,uint32_t flashSize)
 {
     uint32_t sector_nb;
     uint32_t offset;
@@ -127,10 +129,13 @@ static int8_t user_cfgdata_erase_flash_sectors(uint32_t flash)
     int i;
 
     // Calculate the starting sector offset
-    offset = (flash / SPI_SECTOR_SIZE) * SPI_SECTOR_SIZE;
+    offset = (flashOffset / SPI_SECTOR_SIZE) * SPI_SECTOR_SIZE;
 
     // Calculate the numbers of sectors to erase
-    sector_nb = 1;
+    //sector_nb = 1;
+    sector_nb = (flashSize / SPI_SECTOR_SIZE);
+    if (flashSize % SPI_SECTOR_SIZE)
+        sector_nb++;
 
     // Erase flash sectors
     for (i = 0; i < sector_nb; i++)
@@ -172,13 +177,14 @@ void bond_usercfgdata_store_flash(void)
 {
     int8_t ret;
 	uint32_t offset = APP_USER_CONFIG_DATA_OFFSET;
+	uint32_t len = sizeof(struct user_config_data_t);
 	
     bond_db_spi_flash_init();
 
-    ret = user_cfgdata_erase_flash_sectors(offset);
+    ret = user_cfgdata_erase_flash_sectors(offset,len);
     if (ret == ERR_OK)
     {
-        spi_flash_write_data((uint8_t *)&user_config_data, offset, sizeof(struct user_config_data_t));
+        spi_flash_write_data((uint8_t *)&user_config_data, offset, len);
     }
 
     spi_release();
@@ -187,13 +193,14 @@ void bond_useradjdata_store_flash(void)
 {
     int8_t ret;
 	uint32_t offset = APP_USER_ADJ_DATA_OFFSET;
-	
+	uint32_t len = sizeof(struct user_tempadj_data_t);
+		
     bond_db_spi_flash_init();
 
-    ret = user_cfgdata_erase_flash_sectors(offset);
+    ret = user_cfgdata_erase_flash_sectors(offset,len);
     if (ret == ERR_OK)
     {
-        spi_flash_write_data((uint8_t *)&user_tempadj_data, offset, sizeof(struct user_tempadj_data_t));
+        spi_flash_write_data((uint8_t *)&user_tempadj_data, offset, len);
     }
 
     spi_release();
