@@ -25,6 +25,7 @@
 #include "app_api.h"
 #include "gpio.h"
 #include "pwm.h"
+#include "app_bond_db.h"
 #include "user_all_in_one.h"
 #include "user_custs1_def.h"
 #include "user_custs1_impl.h"
@@ -34,10 +35,10 @@
 struct app_proj_env_tag user_app_env __attribute__((section("retention_mem_area0"),zero_init)); //@RETENTION MEMORY
 
 
-static uint16_t user_get_adc1(void);
-static uint16_t user_get_adc2(void);
+//static uint16_t user_get_adc1(void);
+//static uint16_t user_get_adc2(void);
 static uint8_t user_hex2utf8(int16_t in,uint8_t dot,uint8_t *out);
-void user_app_pwm_timer_cb_handler();
+static void user_app_get_adj_val(void);
 /*
  * DEFINES
  ****************************************************************************************
