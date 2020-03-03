@@ -78,6 +78,9 @@ struct app_proj_env_tag
 void user_app_disable_led(void);
 void user_app_enable_led(void);
 uint8_t user_app_get_led_status(void);
+
+uint16_t user_get_adc1(void);
+uint16_t user_get_adc2(void);
 /**
  ****************************************************************************************
  * @brief Control point write indication handler.
@@ -267,6 +270,8 @@ void user_app_enable_periphs(void);
  ****************************************************************************************
 */
 void user_app_disable_periphs(void);
+
+
 
 /// @} APP
 

@@ -55,7 +55,7 @@ static void user_app_get_adj_val(void);
  */
 
 ke_msg_id_t timer_used = 0xFFFF;
-uint16_t waringTmp = 3880;
+//uint16_t waringTmp = 3880;
 //const uint16_t notes[APP_NOTES_NUM] =
 //{
 //    1046,987,767,932,328,880,830,609,783,991,739,989,698,456,659,255,622,254,587,554,365,523,251,493,466,440
@@ -160,10 +160,53 @@ void user_custs1_long_val_wr_ind_handler(ke_msg_id_t const msgid,
                                           ke_task_id_t const dest_id,
                                           ke_task_id_t const src_id)
 {
-	uint8_t val[6];
+	char val[8];
+	float valf;
+	memset(val,0,sizeof(val));
 	memcpy(val, &param->value[0], param->length);
-	waringTmp = (val[0] - 0x30)*1000 + (val[1] - 0x30)*100 + \
-				(val[3] - 0x30)*10 + (val[4] - 0x30);
+	if(val[2] == '.')
+	{
+		valf = (val[0] - 0x30)*1000 + (val[1] - 0x30)*100 + \
+			   (val[3] - 0x30)*10 + (val[4] - 0x30);//+ (val[4] - 0x30);
+		user_tempadj_data.adjTemp = valf / 100.0f; 
+		if(user_tempadj_data.curTemp)
+		{
+			user_tempadj_data.flags = 0x00;
+			user_tempadj_data.valid = 0x01;
+			user_tempadj_data.adjData = user_tempadj_data.adjTemp / user_tempadj_data.curTemp;
+
+			user_config_data.flags = 0x00;	
+			user_config_data.adjData1 *= user_tempadj_data.adjData;
+		}	
+	}
+	else if(strcmp(val,"save9") == 0)
+	{
+		user_config_data.valid = 0x01;//工厂校准标志位
+		user_config_data.flags = 0x01;	
+		user_config_data.adjTemp = user_tempadj_data.adjTemp;		
+		bond_usercfgdata_store_flash();		
+	}	
+	else if(strcmp(val,"save") == 0)
+	{	
+		user_tempadj_data.valid = 0x01;//用户校准标志位
+		user_tempadj_data.flags = 0x01;			
+		bond_useradjdata_store_flash();
+	}
+	else if(strcmp(val,"read") == 0)
+	{
+		user_app_get_adj_val();
+	}
+	else if(strcmp(val,"clear") == 0)
+	{
+		memset(&user_tempadj_data,0,sizeof(user_tempadj_data));
+		bond_useradjdata_store_flash();
+	}
+	else if(strcmp(val,"clear9") == 0)
+	{
+		memset(&user_config_data,0,sizeof(user_config_data));
+		user_config_data.adjData1 = 1.0f;
+		bond_usercfgdata_store_flash();
+	}
 	
 }
 /*
@@ -228,15 +271,27 @@ void user_app_adcval1_timer_cb_handler()
     //static uint8_t kk =0;
 	uint8_t data[6] = {0,0,0,0,0,0},len;
 	static uint16_t tmp1 = 0;
-	float tmp = 0;
+	float tmp,fcoe = 0.2f;
+	//float adjcfg = user_config_data.adjData1 / 1000.0f;
 	uint16_t sample = user_get_adc1();
-	tmp = sample * 4.378f;
+	if(user_config_data.adjData1)
+	{
+		tmp = sample * user_config_data.adjData1;//4.378f;
+	}
+	else
+	{
+		tmp = sample;
+	}
+
+//	fcoe = user_config_data.flags == 0x00 ? 0.5f : 0.1f;
 	if(tmp1 == 0)
 	{
 		tmp1 = tmp;
 	}
 	tmp -= tmp1;	
-	tmp1 += tmp *0.2f;
+	tmp1 += tmp * fcoe;
+	
+	user_tempadj_data.curTemp = tmp1 / 100.0f; 
 	
 	//if(tmp1 > 0x0f0a && ke_state_get(TASK_APP) == APP_CONNECTED) // >38.50 C
 	//		app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
@@ -480,7 +535,7 @@ static void user_app_get_bat_val(void)
 
 static void user_app_get_adj_val(void)
 {       
-		uint16_t adj = waringTmp;//3750; 
+		uint16_t adj = user_tempadj_data.adjTemp * 100;
 		uint8_t data[6] = {0,0,0,0,0,0},len;
         //adc_calibrate();
         //adc_sample = (uint16_t)adc_get_vbat_sample(false);
@@ -568,7 +623,7 @@ static uint8_t user_hex2utf8(int16_t in,uint8_t dot,uint8_t *out)
 #define ADC_ATTENUATION_1    1
 #define ADC_ATTENUATION_3    3
 #define ADC_VOLTAGE_REFER  1200  //mv	
-static uint16_t user_get_adc1(void)
+uint16_t user_get_adc1(void)
 {
 	char printfBuf[8] = {0};
 	uint16_t adc_sample, adc_sample0;
@@ -580,7 +635,7 @@ static uint16_t user_get_adc1(void)
 	//adc_sample0 = swapInt16(adc_sample0);
 	return adc_sample0;
 }
-static uint16_t user_get_adc2(void)
+uint16_t user_get_adc2(void)
 {
     uint32_t adc_sample, adc_sample0;	
 //	char printfBuf[8] = {0};
@@ -612,6 +667,25 @@ void user_app_enable_periphs(void)
 	user_app_get_bat_val();
 	user_app_get_adj_val();
 	arch_set_extended_sleep(); // by aizj add for bugs: long press btn 800uA on connected 
+	
+	if(user_config_data.valid == 0x01) //工厂温度校准标志位
+	{
+		if(user_tempadj_data.valid == 0x01)//用户校准数据标志位
+		{
+			user_config_data.adjData1 *= user_tempadj_data.adjData;
+		}
+	}
+	else//未校准，使用默认数据
+	{
+		memset(&user_config_data,0,sizeof(user_config_data));
+		memset(&user_tempadj_data,0,sizeof(user_tempadj_data));
+		
+		user_config_data.adjData1 = 4.738f;//工厂校准数据
+		user_tempadj_data.adjData = 1.0f;
+		user_config_data.adjTemp = 38.00f;//用户校准温度数据-38
+//		bond_usercfgdata_store_flash();
+//		bond_useradjdata_store_flash();  
+	}
 }
 
 /**

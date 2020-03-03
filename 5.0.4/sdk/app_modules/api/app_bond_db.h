@@ -46,9 +46,9 @@
 
 // SPI FLASH and I2C EEPROM data offset
 #if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
-    #define APP_BOND_DB_DATA_OFFSET     (SPI_FLASH_DEFAULT_SIZE - 3*SPI_SECTOR_SIZE)//(0x1D000)
-	#define APP_USER_CONFIG_DATA_OFFSET (SPI_FLASH_DEFAULT_SIZE - 2*SPI_SECTOR_SIZE)//(0x1E000)
-	#define APP_ADC_ADJ_DATA_OFFSET 	(SPI_FLASH_DEFAULT_SIZE - 1*SPI_SECTOR_SIZE)//(0x1F000)
+    #define APP_BOND_DB_DATA_OFFSET     (SPI_FLASH_DEFAULT_SIZE - 4*SPI_SECTOR_SIZE)//(0x1C000)
+	#define APP_USER_CONFIG_DATA_OFFSET (SPI_FLASH_DEFAULT_SIZE - 3*SPI_SECTOR_SIZE)//(0x1D000)
+	#define APP_USER_ADJ_DATA_OFFSET 	(SPI_FLASH_DEFAULT_SIZE - 2*SPI_SECTOR_SIZE)//(0x1E000)
 #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
     #define APP_BOND_DB_DATA_OFFSET     (0x8000)
 #endif
@@ -94,13 +94,28 @@ struct user_config_data_t
 {
     uint8_t valid;
     uint8_t flags;
+	uint8_t dataLen;
 	uint8_t beepEnable;
 	uint16_t warnMin;
 	uint16_t warnMax;
+	float adjData1;//Factory configuration data
+	float adjTemp;//User configuration data
 //	uint16_t adj[16];
 };
-
+struct user_tempadj_data_t
+{
+    uint8_t valid;
+    uint8_t flags;
+	float adjData;//User configuration adj data
+	float adjTemp;//User configuration temp	
+	float curTemp;//debug
+	float varA;//debug
+	float varB;//debug
+};
 extern struct user_config_data_t user_config_data;
+extern struct user_tempadj_data_t user_tempadj_data;
+
+
 /*
  * FUNCTION DECLARATIONS
  ****************************************************************************************
@@ -142,6 +157,10 @@ const struct bond_db_data* bond_db_lookup_by_ediv(const struct rand_nb *rand_nb,
  ****************************************************************************************
  */
 void bond_db_clear(void);
+
+void bond_usercfgdata_store_flash(void);
+
+void bond_useradjdata_store_flash(void);
 
 /// @} APP_BOND_DB
 

@@ -52,14 +52,17 @@ struct bond_db
     uint16_t end_hdr;
 };
 
-struct user_config_data_t user_config_data;
+
 /*
  * GLOBAL VARIABLE DEFINITIONS
  ****************************************************************************************
  */
 
 static struct bond_db bdb __attribute__((section("retention_mem_area0"), zero_init)); //@RETENTION MEMORY
-
+struct user_config_data_t user_config_data __attribute__((section("retention_mem_area0"), zero_init)); //@RETENTION MEMORY
+struct user_tempadj_data_t user_tempadj_data __attribute__((section("retention_mem_area0"), zero_init)); //@RETENTION MEMORY
+//struct user_config_data_t user_config_data;
+//struct user_tempadj_data_t user_tempadj_data;
 /*
  * FUCTION DEFINITIONS
  ****************************************************************************************
@@ -87,7 +90,9 @@ static void bond_db_load_flash(void)
     spi_flash_read_data((uint8_t *)&bdb, APP_BOND_DB_DATA_OFFSET, sizeof(struct bond_db));
 
 	spi_flash_read_data((uint8_t *)&user_config_data, APP_USER_CONFIG_DATA_OFFSET, sizeof(struct user_config_data_t));
-	
+
+	spi_flash_read_data((uint8_t *)&user_tempadj_data, APP_USER_ADJ_DATA_OFFSET, sizeof(struct user_tempadj_data_t));
+		
     spi_release();
 }
 
@@ -116,7 +121,7 @@ static int8_t bond_db_erase_flash_sectors(void)
     }
     return ret;
 }
-static int8_t user_cfgdata_erase_flash_sectors(uint32_t flash)
+static int8_t user_cfgdata_erase_flash_sectors(uint32_t flashOffset,uint32_t flashSize)
 {
     uint32_t sector_nb;
     uint32_t offset;
@@ -124,10 +129,13 @@ static int8_t user_cfgdata_erase_flash_sectors(uint32_t flash)
     int i;
 
     // Calculate the starting sector offset
-    offset = (flash / SPI_SECTOR_SIZE) * SPI_SECTOR_SIZE;
+    offset = (flashOffset / SPI_SECTOR_SIZE) * SPI_SECTOR_SIZE;
 
     // Calculate the numbers of sectors to erase
-    sector_nb = 1;
+    //sector_nb = 1;
+    sector_nb = (flashSize / SPI_SECTOR_SIZE);
+    if (flashSize % SPI_SECTOR_SIZE)
+        sector_nb++;
 
     // Erase flash sectors
     for (i = 0; i < sector_nb; i++)
@@ -165,32 +173,34 @@ static void bond_db_clear_flash(void)
 
     spi_release();
 }
-void bond_cfgdata_store_flash(void)
+void bond_usercfgdata_store_flash(void)
 {
     int8_t ret;
 	uint32_t offset = APP_USER_CONFIG_DATA_OFFSET;
+	uint32_t len = sizeof(struct user_config_data_t);
 	
     bond_db_spi_flash_init();
 
-    ret = user_cfgdata_erase_flash_sectors(offset);
+    ret = user_cfgdata_erase_flash_sectors(offset,len);
     if (ret == ERR_OK)
     {
-        spi_flash_write_data((uint8_t *)&user_config_data, offset, sizeof(struct user_config_data_t));
+        spi_flash_write_data((uint8_t *)&user_config_data, offset, len);
     }
 
     spi_release();
 }
-void bond_adjdata_store_flash(void)
+void bond_useradjdata_store_flash(void)
 {
     int8_t ret;
-	uint32_t offset = APP_ADC_ADJ_DATA_OFFSET;
-	
+	uint32_t offset = APP_USER_ADJ_DATA_OFFSET;
+	uint32_t len = sizeof(struct user_tempadj_data_t);
+		
     bond_db_spi_flash_init();
 
-    ret = user_cfgdata_erase_flash_sectors(offset);
+    ret = user_cfgdata_erase_flash_sectors(offset,len);
     if (ret == ERR_OK)
     {
-        spi_flash_write_data((uint8_t *)&user_config_data, offset, sizeof(struct user_config_data_t));
+        spi_flash_write_data((uint8_t *)&user_tempadj_data, offset, len);
     }
 
     spi_release();
@@ -225,20 +235,20 @@ static void bond_db_store_eeprom(void)
 
 static inline void bond_db_load_ext(void)
 {
-    #if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
+#if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
     bond_db_load_flash();
-    #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
+#elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
     bond_db_load_eeprom();
-    #endif
+#endif
 }
 
 static inline void bond_db_store_ext(void)
 {
-    #if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
+#if defined (USER_CFG_APP_BOND_DB_USE_SPI_FLASH)
     bond_db_store_flash();
-    #elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
+#elif defined (USER_CFG_APP_BOND_DB_USE_I2C_EEPROM)
     bond_db_store_eeprom();
-    #endif
+#endif
 }
 
 static inline void bond_db_clear_ext(void)
