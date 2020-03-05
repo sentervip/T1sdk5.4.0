@@ -207,7 +207,7 @@ static void cali_param_update_cb(void)
 		user_tempadj_data.adjTemp = 38.00f;
 		user_tempadj_data.adjData = 1.0f;
 		user_config_data.adjData1 = 1.0f;
-		user_config_data.flags = 0x02;		
+		user_config_data.flags = 0x02;
 	}
 	
 	
@@ -237,7 +237,7 @@ static void cali_param_update_cb(void)
 				user_tempadj_data.varB = varB;
 			}
 			
-			if((user_tempadj_data.varB < 0.2f) && (states == 0x01))
+			if((user_tempadj_data.varB < 0.01f) && (states == 0x01))
 			{
 				stateCnt = 100000;
 				caliCnt++;
