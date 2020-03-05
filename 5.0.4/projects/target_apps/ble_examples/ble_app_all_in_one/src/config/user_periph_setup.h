@@ -165,7 +165,7 @@
 
     #define GPIO_POWER_PORT     GPIO_PORT_2
     #define GPIO_POWER_PIN      GPIO_PIN_5
-	
+#if 1	//2019 hw board
     #define GPIO_LED_PORT     GPIO_PORT_1
     #define GPIO_LED_PIN      GPIO_PIN_0
 
@@ -174,8 +174,18 @@
 
     #define GPIO_BUTTON_PORT  GPIO_PORT_1
     #define GPIO_BUTTON_PIN   GPIO_PIN_3	
-//    #define GPIO_BUTTON_PORT  GPIO_PORT_0
+//    #define GPIO_BUTTON_PORT  GPIO_PORT_0 //for dk board
 //    #define GPIO_BUTTON_PIN   GPIO_PIN_7	
+#else ////2020 hw board 
+    #define GPIO_LED_PORT     GPIO_PORT_1
+    #define GPIO_LED_PIN      GPIO_PIN_0
+
+    #define GPIO_PWM_PORT     GPIO_PORT_2
+    #define GPIO_PWM_PIN      GPIO_PIN_4
+
+    #define GPIO_BUTTON_PORT  GPIO_PORT_1
+    #define GPIO_BUTTON_PIN   GPIO_PIN_1	
+#endif
 #endif
 
 //BLE STATUS
