@@ -261,6 +261,56 @@ void user_custs1_indicateable_ind_cfm_handler(ke_msg_id_t const msgid,
 {
 }
 */
+#define EFF_TEMP 3300 //33度以上为有效温度	
+#define EXF_TEMP 10 //0.1度
+#define A30      9.4545          // 30-20???????
+#define A40     -23.6205         // 40-30???????
+#define A50      23.0105         // 50-40???????
+int16_t user_app_estimate_temp(int16_t inTemp)
+{
+	static uint8_t initFlag = 0,statFlag = 0,stableFlag = 0;
+	static uint8_t dataInFlag = 0,timeoutFlag = 0;
+	static int tmpBuff[60],index = 0;
+	
+	int16_t result = inTemp,exTemp;
+	
+	if(initFlag == 0)
+	{
+		if(inTemp >= EFF_TEMP)
+		{
+			initFlag = 1;
+			statFlag = 1;
+			index = 0;
+		}
+		else 
+		{
+			return result;
+		}
+	}
+	if(statFlag)
+	{
+		tmpBuff[index] = inTemp;
+		if(index++ >= sizeof(tmpBuff))
+		{
+			index = 0;
+			dataInFlag = 1;
+			exTemp = inTemp - tmpBuff[0];
+			if((exTemp > 0)&(exTemp < EXF_TEMP))
+			{
+				stableFlag = 0x01;
+			}
+		}
+	}
+	if((stableFlag == 0)&&(dataInFlag == 1))//未达到稳定温度,给出预计值
+	{
+		result = (int16_t)(A30*(tmpBuff[30]-tmpBuff[20])+A40*(tmpBuff[40]-tmpBuff[30])+A50*(tmpBuff[50]-tmpBuff[40])+tmpBuff[50]);
+	}
+	else
+	{
+		result = inTemp;
+	}
+	return result;
+}
 void user_app_adcval1_timer_cb_handler()
 {
     struct custs1_val_ntf_req* req = KE_MSG_ALLOC_DYN(CUSTS1_VAL_NTF_REQ,
@@ -272,7 +322,7 @@ void user_app_adcval1_timer_cb_handler()
     // ADC value to be sampled
     //static uint8_t kk =0;
 	uint8_t data[6] = {0,0,0,0,0,0},len;
-	static uint16_t tmp1 = 0;
+	static uint16_t tmp1 = 0,rtemp;
 	float tmp,fcoe = 0.1f;
 	//float adjcfg = user_config_data.adjData1 / 1000.0f;
 	uint16_t sample = user_get_adc1();
@@ -291,9 +341,10 @@ void user_app_adcval1_timer_cb_handler()
 //		tmp1 = tmp;
 //	}
 	tmp -= tmp1;	
-	tmp1 += tmp * fcoe;
-	
+	tmp1 += tmp * fcoe;	
 	user_tempadj_data.curTemp = user_config_data.adjData0 + tmp1 / 100.0f; 
+	
+	rtemp = user_app_estimate_temp(tmp1);
 	
 	//if(tmp1 > 0x0f0a && ke_state_get(TASK_APP) == APP_CONNECTED) // >38.50 C
 	//		app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
@@ -301,7 +352,7 @@ void user_app_adcval1_timer_cb_handler()
 	/*uint16_t adc_sample = 3751+kk;//user_get_adc1();
 	if(++kk > 100)
 		kk = 0;*/
-	len = user_hex2utf8(tmp1,2,data);
+	len = user_hex2utf8(rtemp,2,data);
 	
     req->conhdl = app_env->conhdl;
     req->handle = CUST1_IDX_ADC_VAL_1_VAL;

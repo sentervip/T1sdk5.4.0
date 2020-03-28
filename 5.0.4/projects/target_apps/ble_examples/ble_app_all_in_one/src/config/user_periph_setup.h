@@ -174,6 +174,9 @@
 
     #define GPIO_BUTTON_PORT  GPIO_PORT_1
     #define GPIO_BUTTON_PIN   GPIO_PIN_3	
+	
+    #define GPIO_BUTTON_CALI_PORT  GPIO_PORT_0
+    #define GPIO_BUTTON_CALI_PIN   GPIO_PIN_4	
 //    #define GPIO_BUTTON_PORT  GPIO_PORT_0 //for dk board
 //    #define GPIO_BUTTON_PIN   GPIO_PIN_7	
 #else ////2020 hw board 

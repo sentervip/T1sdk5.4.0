@@ -191,11 +191,11 @@ static void app_wakeup_led_ctrl_cb(void)
 }
 static void cali_param_update_cb(void)
 {
-	uint8_t initFlag = 0,states = 1;
+	uint8_t initFlag = 0,states = 1,startCaliFalg = 0;
 	float tmp1 = 0,varA = 0,varB = 100;
 	uint16_t len_count = 0,sample,dataSize = 100;
 	float tmp,fcoe = 0.1f;
-	uint32_t stateCnt = 400000,caliCnt = 0;
+	uint32_t stateCnt = 800000,caliCnt = 0;
 	
 	
 	//if(initFlag == 0x00)
@@ -223,7 +223,14 @@ static void cali_param_update_cb(void)
 		//arch_force_active_mode();
 //		arch_set_extended_sleep();
 //		GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
-		//if(len_count == 10)
+		
+		if(GPIO_GetPinStatus( GPIO_BUTTON_CALI_PORT, GPIO_BUTTON_CALI_PIN ) == 0)
+		{
+			startCaliFalg = 1;
+			stateCnt = 400000;
+		}
+		
+		if(startCaliFalg)
 		{
 			len_count = 0;
 			sample = user_get_adc1();
