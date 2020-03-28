@@ -271,7 +271,7 @@ void user_app_adcval1_timer_cb_handler()
     //static uint8_t kk =0;
 	uint8_t data[6] = {0,0,0,0,0,0},len;
 	static uint16_t tmp1 = 0;
-	float tmp,fcoe = 0.2f;
+	float tmp,fcoe = 0.1f;
 	//float adjcfg = user_config_data.adjData1 / 1000.0f;
 	uint16_t sample = user_get_adc1();
 	if(user_config_data.adjData1)
@@ -284,14 +284,14 @@ void user_app_adcval1_timer_cb_handler()
 	}
 
 //	fcoe = user_config_data.flags == 0x00 ? 0.5f : 0.1f;
-	if(tmp1 == 0)
-	{
-		tmp1 = tmp;
-	}
+//	if(tmp1 == 0)
+//	{
+//		tmp1 = tmp;
+//	}
 	tmp -= tmp1;	
 	tmp1 += tmp * fcoe;
 	
-	user_tempadj_data.curTemp = tmp1 / 100.0f; 
+	user_tempadj_data.curTemp = user_config_data.adjData0 + tmp1 / 100.0f; 
 	
 	/*uint16_t adc_sample = 3751+kk;//user_get_adc1();
 	if(++kk > 100)

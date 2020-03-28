@@ -98,6 +98,7 @@ struct user_config_data_t
 	uint8_t beepEnable;
 	uint16_t warnMin;
 	uint16_t warnMax;
+	float adjData0;
 	float adjData1;//Factory configuration data
 	float adjTemp;//User configuration data
 //	uint16_t adj[16];

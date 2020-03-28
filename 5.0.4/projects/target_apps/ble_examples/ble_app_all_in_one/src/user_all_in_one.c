@@ -216,7 +216,10 @@ static void cali_param_update_cb(void)
 	while(states)
 	{
 		len_count++;
-		wdg_freeze();            // Stop WDOG
+#if (USE_WDOG) 		
+//		wdg_freeze();            // Stop WDOG
+		wdg_reload(WATCHDOG_DEFAULT_PERIOD);          // Reset WDOG!		
+#endif		
 		//arch_force_active_mode();
 //		arch_set_extended_sleep();
 //		GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
@@ -292,7 +295,8 @@ static void cali_param_update_cb(void)
 			states = 0x00; 
 			GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
 		}
-	}			
+	}
+	NVIC_SystemReset();	
 //	if(cali_param_update_used != EASY_TIMER_INVALID_TIMER)
 //	{
 //		cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY,cali_param_update_cb);
