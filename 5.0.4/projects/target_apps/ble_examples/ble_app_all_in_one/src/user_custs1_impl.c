@@ -200,12 +200,14 @@ void user_custs1_long_val_wr_ind_handler(ke_msg_id_t const msgid,
 	{
 		memset(&user_tempadj_data,0,sizeof(user_tempadj_data));
 		bond_useradjdata_store_flash();
-	}
-	else if(strcmp(val,"clear9") == 0)
-	{
+	//}
+	//else if(strcmp(val,"clear9") == 0)
+	//{
 		memset(&user_config_data,0,sizeof(user_config_data));
 		user_config_data.adjData1 = 1.0f;
 		bond_usercfgdata_store_flash();
+		for(int i=0;i<1000;i++)
+		platform_reset(RESET_AFTER_SPOTA_UPDATE);
 	}
 	
 }
@@ -293,6 +295,9 @@ void user_app_adcval1_timer_cb_handler()
 	
 	user_tempadj_data.curTemp = user_config_data.adjData0 + tmp1 / 100.0f; 
 	
+	//if(tmp1 > 0x0f0a && ke_state_get(TASK_APP) == APP_CONNECTED) // >38.50 C
+	//		app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
+
 	/*uint16_t adc_sample = 3751+kk;//user_get_adc1();
 	if(++kk > 100)
 		kk = 0;*/
@@ -318,15 +323,15 @@ void user_app_pwm_timer_cb_handler()
 	{
 		i = 1;
 		user_app_enable_pwm();
-		GPIO_SetActive( GPIO_PORT_1, GPIO_PIN_0);//led on
+		//GPIO_SetActive( GPIO_PORT_1, GPIO_PIN_0);//led on
 	}
 	else
 	{
 		i = 0;
 		 user_app_disable_pwm();
-		GPIO_SetInactive( GPIO_PORT_1, GPIO_PIN_0);//led off
+		//GPIO_SetInactive( GPIO_PORT_1, GPIO_PIN_0);//led off
 	}
-	app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
+	//app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
 }
 /**
  ****************************************************************************************
@@ -340,7 +345,7 @@ static void user_app_disable_pwm(void)
     {
         user_app_env.custs1_pwm_enabled = 0;
 
-        arch_restore_sleep_mode();
+        arch_restore_sleep_mode();   
 #if 0
         timer0_stop();
         set_tmr_enable(CLK_PER_REG_TMR_DISABLED);
@@ -532,7 +537,7 @@ static void user_app_get_bat_val(void)
 
 static void user_app_get_adj_val(void)
 {       
-		uint16_t adj = user_tempadj_data.adjTemp * 100;
+		uint16_t adj = user_config_data.adjData1 * 100;
 		uint8_t data[6] = {0,0,0,0,0,0},len;
         //adc_calibrate();
         //adc_sample = (uint16_t)adc_get_vbat_sample(false);
@@ -665,9 +670,9 @@ void user_app_enable_periphs(void)
 	user_app_get_adj_val();
 	arch_set_extended_sleep(); // by aizj add for bugs: long press btn 800uA on connected 
 	
-	if(user_config_data.valid == 0x01) //工厂温度校准标志位
+	if(user_config_data.valid == 0x01) //工厂温度校准标志位:0x01 已经校准；其它 未校准
 	{
-		if(user_tempadj_data.valid == 0x01)//用户校准数据标志位
+		if(user_tempadj_data.valid == 0x01)//用户校准数据标志位:0x01 已经校准；其它 未校准
 		{
 			user_config_data.adjData1 *= user_tempadj_data.adjData;
 		}
@@ -679,7 +684,7 @@ void user_app_enable_periphs(void)
 		
 		user_config_data.adjData1 = 4.738f;//工厂校准数据
 		user_tempadj_data.adjData = 1.0f;
-		user_config_data.adjTemp = 38.00f;//用户校准温度数据-38
+		user_config_data.adjTemp = 38.00f;//用户校准温度数据：38
 //		bond_usercfgdata_store_flash();
 //		bond_useradjdata_store_flash();  
 	}
