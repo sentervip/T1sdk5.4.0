@@ -206,13 +206,10 @@ static void cali_param_update_cb(void)
 		GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
 		user_tempadj_data.adjTemp = 38.00f;
 		user_tempadj_data.adjData = 1.0f;
-		user_config_data.adjData1 = 1.0f;
+		user_config_data.adjData1 = 4.2f;
 		user_config_data.flags = 0x02;
 	}
-	
-	
-	
-	
+		
 	while(states)
 	{
 		len_count++;
@@ -274,6 +271,7 @@ static void cali_param_update_cb(void)
 				stateCnt = 200000;
 			}
 		}
+		//led display
 		if(user_config_data.flags == 0x01)//校准完成,LED常亮
 		{
 			GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);
@@ -297,12 +295,12 @@ static void cali_param_update_cb(void)
 			GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
 		}
 		
-		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0)
+		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0) // 开关按键按下 重启系统
 		{
 			states = 0x00; 
 			GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
 		}
-	}
+	}//end while(1)
 	NVIC_SystemReset();	
 //	if(cali_param_update_used != EASY_TIMER_INVALID_TIMER)
 //	{
@@ -310,6 +308,64 @@ static void cali_param_update_cb(void)
 //	}	
 }
 static void app_check_button_cb(void)
+{
+	static uint16_t powerOffCount = 0;	
+	static uint16_t g_check_btnCb_count = 0;
+	
+	g_check_btnCb_count++; 
+	if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0 && (app_connection_flag == APP_BLE_ADV)){
+		powerOffCount++;
+		user_app_enable_led();	
+		arch_force_active_mode();
+		if(powerOffCount > 5){
+			powerOffCount = 0;
+			user_app_disable_led();
+			if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)			// lewis add
+			{
+				app_easy_timer_cancel(app_adv_data_update_timer_used);					
+				app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;		
+			}				
+			
+			app_easy_gap_advertise_stop();
+			user_app_disable_periphs();
+			for(int i=0;i<10;i++)
+				arch_restore_sleep_mode();			
+			if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
+			{
+				app_easy_timer_cancel(app_check_button_used);
+				app_check_button_used = EASY_TIMER_INVALID_TIMER;
+			}
+		}// >5
+		
+	}else if(app_connection_flag == APP_BLE_ADV && (g_check_btnCb_count%5) == 0){ // blink led		
+		powerOffCount = 0;
+		if(user_app_get_led_status() == 1 || g_check_btnCb_count%3 == 0)
+		{
+			user_app_disable_led();
+		}
+		else
+		{
+			user_app_enable_led(); 
+		}
+		
+	}else{
+		powerOffCount = 0;
+		arch_restore_sleep_mode();  // by aizj for debug
+		
+	}
+	// poll now?
+	if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
+	{
+		app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_check_button_cb);	
+	}
+	// poll btn calbrate
+	if(GPIO_GetPinStatus( GPIO_BUTTON_CALI_PORT, GPIO_BUTTON_CALI_PIN ) == 0){
+        cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY_CALI,cali_param_update_cb);	
+		app_easy_timer_cancel(app_check_button_used);
+	}	
+}
+/*
+static void app_check_button_cb_old(void)
 {
 	static uint16_t powerOffCount = 0;	
 	static uint16_t g_check_btnCb_count = 0;
@@ -380,6 +436,7 @@ static void app_check_button_cb(void)
 		
 	
 }
+*/
 /**
  ****************************************************************************************
  * @brief Button press callback function. Registered in WKUPCT driver.

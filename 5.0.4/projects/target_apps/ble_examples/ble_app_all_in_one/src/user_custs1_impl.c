@@ -261,11 +261,7 @@ void user_custs1_indicateable_ind_cfm_handler(ke_msg_id_t const msgid,
 {
 }
 */
-#define EFF_TEMP 3300 //33度以上为有效温度	
-#define EXF_TEMP 10 //0.1度
-#define A30      9.4545          // 30-20???????
-#define A40     -23.6205         // 40-30???????
-#define A50      23.0105         // 50-40???????
+
 int16_t user_app_estimate_temp(int16_t inTemp)
 {
 	static uint8_t initFlag = 0,statFlag = 0,stableFlag = 0;
@@ -328,7 +324,7 @@ void user_app_adcval1_timer_cb_handler()
 	uint16_t sample = user_get_adc1();
 	if(user_config_data.adjData1)
 	{
-		tmp = sample * user_config_data.adjData1;//4.378f;
+		tmp = sample * user_config_data.adjData1 + BODY_OFFSET;//4.21f;
 	}
 	else
 	{
@@ -342,7 +338,7 @@ void user_app_adcval1_timer_cb_handler()
 //	}
 	tmp -= tmp1;	
 	tmp1 += tmp * fcoe;	
-	user_tempadj_data.curTemp = user_config_data.adjData0 + tmp1 / 100.0f; 
+	user_tempadj_data.curTemp = user_config_data.adjData0 + tmp1 / 100.0f ; 
 	
 	rtemp = user_app_estimate_temp(tmp1);
 	
@@ -733,7 +729,7 @@ void user_app_enable_periphs(void)
 		memset(&user_config_data,0,sizeof(user_config_data));
 		memset(&user_tempadj_data,0,sizeof(user_tempadj_data));
 		
-		user_config_data.adjData1 = 4.738f;//工厂校准数据
+		user_config_data.adjData1 = 4.238f;//工厂校准数据
 		user_tempadj_data.adjData = 1.0f;
 		user_config_data.adjTemp = 38.00f;//用户校准温度数据：38
 //		bond_usercfgdata_store_flash();

@@ -55,6 +55,7 @@
 #define APP_AD_MSD_DATA_LEN                (sizeof(uint16_t))
 
 #define APP_PERIPHERAL_CTRL_TIMER_DELAY    (200)  // *10ms
+#define APP_PERIPHERAL_CTRL_TIMER_DELAY_CALI    (20)  // *10ms
 #define APP_WAKEUP_LED_CTRL_TIMER_DELAY    (50)
 
 /// Passkey that is presented to the user and is entered on the peer device (MITM)
