@@ -160,42 +160,37 @@
 
     #define GPIO_BUTTON_PORT  GPIO_PORT_1
     #define GPIO_BUTTON_PIN   GPIO_PIN_1
-	
+    
 #else // (other configuration)
 
     #define GPIO_POWER_PORT     GPIO_PORT_2
     #define GPIO_POWER_PIN      GPIO_PIN_5
-#if 1	//2019 hw board
-    #define GPIO_LED_PORT     GPIO_PORT_1
-    #define GPIO_LED_PIN      GPIO_PIN_0
-
-    #define GPIO_PWM_PORT     GPIO_PORT_1
-    #define GPIO_PWM_PIN      GPIO_PIN_1
+    #define GPIO_BUTTON_CALI_PORT  GPIO_PORT_1  //SWD DIO
+    #define GPIO_BUTTON_CALI_PIN   GPIO_PIN_5
+    #define GPIO_LED_PORT          GPIO_PORT_1
+    #define GPIO_LED_PIN           GPIO_PIN_0
+#if 0   //2019 hw board
+   // #define GPIO_PWM_PORT     GPIO_PORT_1
+   // #define GPIO_PWM_PIN      GPIO_PIN_1
 
     #define GPIO_BUTTON_PORT  GPIO_PORT_1
-    #define GPIO_BUTTON_PIN   GPIO_PIN_3	
-	
-    #define GPIO_BUTTON_CALI_PORT  GPIO_PORT_0
-    #define GPIO_BUTTON_CALI_PIN   GPIO_PIN_4	
+    #define GPIO_BUTTON_PIN   GPIO_PIN_3        
 //    #define GPIO_BUTTON_PORT  GPIO_PORT_0 //for dk board
-//    #define GPIO_BUTTON_PIN   GPIO_PIN_7	
+//    #define GPIO_BUTTON_PIN   GPIO_PIN_7  
 #else ////2020 hw board 
-    #define GPIO_LED_PORT     GPIO_PORT_1
-    #define GPIO_LED_PIN      GPIO_PIN_0
-
-    #define GPIO_PWM_PORT     GPIO_PORT_2
-    #define GPIO_PWM_PIN      GPIO_PIN_4
+   // #define GPIO_PWM_PORT     GPIO_PORT_2
+   // #define GPIO_PWM_PIN      GPIO_PIN_4
 
     #define GPIO_BUTTON_PORT  GPIO_PORT_1
-    #define GPIO_BUTTON_PIN   GPIO_PIN_1	
+    #define GPIO_BUTTON_PIN   GPIO_PIN_1    
 #endif
 #endif
 
 //BLE STATUS
 enum APP_BLE_STAT{
     APP_BLE_ADV=0, // ble advise now
-	APP_BLE_CONNECTED, //  app connected already
-	APP_BLE_TIMEOUT_IDLE,// ble undirect and idle
+    APP_BLE_CONNECTED, //  app connected already
+    APP_BLE_TIMEOUT_IDLE,// ble undirect and idle
 };
 /****************************************************************************************/
 /* I2C EEPROM GPIO assignment                                                           */

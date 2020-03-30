@@ -72,9 +72,9 @@ struct mnf_specific_data_ad_structure
 uint8_t app_connection_idx                    __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
 timer_hnd app_adv_data_update_timer_used      __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
 timer_hnd app_param_update_request_timer_used __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
-timer_hnd wakeup_led_ctrl_used				  __attribute__((section("retention_mem_area0"),zero_init));
-timer_hnd app_check_button_used				  __attribute__((section("retention_mem_area0"),zero_init));
-timer_hnd cali_param_update_used			  __attribute__((section("retention_mem_area0"),zero_init));
+timer_hnd wakeup_led_ctrl_used                __attribute__((section("retention_mem_area0"),zero_init));
+timer_hnd app_check_button_used               __attribute__((section("retention_mem_area0"),zero_init));
+timer_hnd cali_param_update_used              __attribute__((section("retention_mem_area0"),zero_init));
 
 // aizj add
 uint8_t app_connection_flag                    __attribute__((section("retention_mem_area0"),zero_init)); // @RETENTION MEMORY
@@ -163,278 +163,280 @@ static void app_wakeup_cb(void)
     // If state is not idle, ignore the message
     if (ke_state_get(TASK_APP) == APP_CONNECTABLE)
     {
-			user_app_adv_start();
-			
+            user_app_adv_start();
+            
     }
 }
 static void app_wakeup_led_ctrl_cb(void)
 {
-//	 static uint8_t powerOnLedFinshFlag =0;
-//	 static uint16_t powerOffCount = 0;
-	if(arch_ble_ext_wakeup_get() == false)
-	{
-		//if(powerOnLedFinshFlag == 0)
-		{
-			//powerOnLedFinshFlag = 1;
-			for(int j = 0;j<20;j++)
-			{
-				if(user_app_get_led_status() == 0)
-				{
-					user_app_enable_led();
-				}else{
-					user_app_disable_led();
-				}
-				for(int m=0;m<200000;m++);
-			}
-		}
-	}		
+//   static uint8_t powerOnLedFinshFlag =0;
+//   static uint16_t powerOffCount = 0;
+    if(arch_ble_ext_wakeup_get() == false)
+    {
+        //if(powerOnLedFinshFlag == 0)
+        {
+            //powerOnLedFinshFlag = 1;
+            for(int j = 0;j<20;j++)
+            {
+                if(user_app_get_led_status() == 0)
+                {
+                    user_app_enable_led();
+                }else{
+                    user_app_disable_led();
+                }
+                for(int m=0;m<200000;m++);
+            }
+        }
+    }       
 }
 static void cali_param_update_cb(void)
 {
-	uint8_t initFlag = 0,states = 1,startCaliFalg = 0;
-	float tmp1 = 0,varA = 0,varB = 100;
-	uint16_t len_count = 0,sample,dataSize = 100;
-	float tmp,fcoe = 0.1f;
-	uint32_t stateCnt = 800000,caliCnt = 0;
-	
-	
-	//if(initFlag == 0x00)
-	{
-	//	initFlag = 0x01;
-		user_app_enable_periphs();
-		arch_set_extended_sleep();
-		GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
-		user_tempadj_data.adjTemp = 38.00f;
-		user_tempadj_data.adjData = 1.0f;
-		user_config_data.adjData1 = 4.2f;
-		user_config_data.flags = 0x02;
-	}
+    uint8_t initFlag = 0,states = 1,startCaliFalg = 0;
+    float tmp1 = 0,varA = 0,varB = 100;
+    uint16_t len_count = 0,sample,dataSize = 100;
+    float tmp,fcoe = 0.1f;
+    uint32_t stateCnt = 800000,caliCnt = 0;
+    
+    
+    //if(initFlag == 0x00)
+    {
+    //  initFlag = 0x01;
+        periph_init();
+        user_app_enable_periphs();
+        //arch_set_extended_sleep();       
+        arch_force_active_mode();
+        GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
+        user_tempadj_data.adjTemp = 38.00f;
+        user_tempadj_data.adjData = 1.0f;
+        user_config_data.adjData1 = 4.2f;
+        user_config_data.flags = 0x02;
+    }
+        
+    while(states)
+    {
+        len_count++;
+#if (USE_WDOG)      
+//      wdg_freeze();            // Stop WDOG
+        wdg_reload(WATCHDOG_DEFAULT_PERIOD);          // Reset WDOG!        
+#endif      
 		
-	while(states)
-	{
-		len_count++;
-#if (USE_WDOG) 		
-//		wdg_freeze();            // Stop WDOG
-		wdg_reload(WATCHDOG_DEFAULT_PERIOD);          // Reset WDOG!		
-#endif		
-		//arch_force_active_mode();
-//		arch_set_extended_sleep();
-//		GPIO_SetActive(GPIO_POWER_PORT, GPIO_POWER_PIN);//power on
-		
-		if(GPIO_GetPinStatus( GPIO_BUTTON_CALI_PORT, GPIO_BUTTON_CALI_PIN ) == 0)
-		{
-			startCaliFalg = 1;
-			stateCnt = 400000;
-		}
-		
-		if(startCaliFalg)
-		{
-			len_count = 0;
-			sample = user_get_adc1();
-			tmp = sample * user_config_data.adjData1;
-			tmp -= tmp1;	
-			tmp1 += tmp * fcoe;	
-			user_tempadj_data.curTemp = tmp1 / 100.0f; 
-			
-			if(user_tempadj_data.curTemp != 0)
-			{
-				varA += (user_tempadj_data.curTemp - varA)/dataSize;
-				varB = (dataSize-2)*(varB)/(dataSize-1)+(user_tempadj_data.curTemp - varA)*(user_tempadj_data.curTemp - varA)/dataSize;	
-				user_tempadj_data.varA = varA;
-				user_tempadj_data.varB = varB;
-			}
-			
-			if((user_tempadj_data.varB < 0.01f) && (states == 0x01))
-			{
-				stateCnt = 100000;
-				caliCnt++;
-				if(caliCnt > 10)
-				{
-					user_config_data.adjTemp = user_tempadj_data.adjTemp;
-					user_config_data.adjData1 = user_config_data.adjTemp / user_tempadj_data.curTemp;
-					user_config_data.valid = 1;
-					user_config_data.flags = 1;
-					
+        if(GPIO_GetPinStatus( GPIO_BUTTON_CALI_PORT, GPIO_BUTTON_CALI_PIN ) == 0)
+        {
+            startCaliFalg = 1;
+            stateCnt = 400000;
+        }
+        
+        if(startCaliFalg)
+        {
+            len_count = 0;
+            sample = user_get_adc1();
+            tmp = sample * user_config_data.adjData1;
+            tmp -= tmp1;    
+            tmp1 += tmp * fcoe; 
+            user_tempadj_data.curTemp = tmp1 / 100.0f; 
+            
+            if(user_tempadj_data.curTemp != 0)
+            {
+                varA += (user_tempadj_data.curTemp - varA)/dataSize;
+                varB = (dataSize-2)*(varB)/(dataSize-1)+(user_tempadj_data.curTemp - varA)*(user_tempadj_data.curTemp - varA)/dataSize; 
+                user_tempadj_data.varA = varA;
+                user_tempadj_data.varB = varB;
+            }
+            
+            if((user_tempadj_data.varB < 0.01f) && (states == 0x01))
+            {
+                stateCnt = 100000;
+                caliCnt++;
+                if(caliCnt > 10)
+                {
+                    user_config_data.adjTemp = user_tempadj_data.adjTemp;
+                    user_config_data.adjData1 = user_config_data.adjTemp / user_tempadj_data.curTemp;
+                    user_config_data.valid = 1;
+                    user_config_data.flags = 1;
+                    
 
-					bond_usercfgdata_store_flash();
-					
-					user_tempadj_data.valid = 1;
-					user_tempadj_data.flags = 1;
-					bond_useradjdata_store_flash();
-					
-					states = 0x02;
-				}
-			}
-			else
-			{
-				caliCnt = 0;
-				stateCnt = 200000;
-			}
-		}
-		//led display
-		if(user_config_data.flags == 0x01)//校准完成,LED常亮
-		{
-			GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);
-		}
-		else if(user_config_data.flags == 0x02)
-		{
-			if(user_app_get_led_status())
-			{
-				//user_app_disable_led();
-				GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
-			}
-			else
-			{
-				//user_app_enable_led();
-				GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);
-			}
-			for(int m=0;m<stateCnt;m++);
-		}
-		else //校准失败,LED熄灭
-		{
-			GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
-		}
-		
-		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0) // 开关按键按下 重启系统
-		{
-			states = 0x00; 
-			GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
-		}
-	}//end while(1)
-	NVIC_SystemReset();	
-//	if(cali_param_update_used != EASY_TIMER_INVALID_TIMER)
-//	{
-//		cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY,cali_param_update_cb);
-//	}	
+                    bond_usercfgdata_store_flash();
+                    
+                    user_tempadj_data.valid = 1;
+                    user_tempadj_data.flags = 1;
+                    bond_useradjdata_store_flash();
+                    
+                    states = 0x02;
+                }
+            }
+            else
+            {
+                caliCnt = 0;
+                stateCnt = 200000;
+            }
+        }
+        //led display
+        if(user_config_data.flags == 0x01)//校准完成,LED常亮
+        {
+            GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);            
+            app_easy_timer_cancel(cali_param_update_used);
+        }
+        else if(user_config_data.flags == 0x02)
+        {
+            if(user_app_get_led_status())
+            {
+                //user_app_disable_led();
+                GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
+            }
+            else
+            {
+                //user_app_enable_led();
+                GPIO_SetActive(GPIO_LED_PORT, GPIO_LED_PIN);
+            }
+            for(int m=0;m<stateCnt;m++);
+        }else{ //校准失败,LED熄灭
+            GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
+        }
+        
+        if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0) // 开关按键按下 重启系统
+        {
+            states = 0x00; 
+            GPIO_SetInactive(GPIO_LED_PORT, GPIO_LED_PIN);
+        }
+    }//end while(1)
+    NVIC_SystemReset(); 
+//  if(cali_param_update_used != EASY_TIMER_INVALID_TIMER)
+//  {
+//      cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY,cali_param_update_cb);
+//  }   
 }
+
 static void app_check_button_cb(void)
 {
-	static uint16_t powerOffCount = 0;	
-	static uint16_t g_check_btnCb_count = 0;
-	
-	g_check_btnCb_count++; 
-	if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0 && (app_connection_flag == APP_BLE_ADV)){
-		powerOffCount++;
-		user_app_enable_led();	
-		arch_force_active_mode();
-		if(powerOffCount > 5){
-			powerOffCount = 0;
-			user_app_disable_led();
-			if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)			// lewis add
-			{
-				app_easy_timer_cancel(app_adv_data_update_timer_used);					
-				app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;		
-			}				
-			
-			app_easy_gap_advertise_stop();
-			user_app_disable_periphs();
-			for(int i=0;i<10;i++)
-				arch_restore_sleep_mode();			
-			if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
-			{
-				app_easy_timer_cancel(app_check_button_used);
-				app_check_button_used = EASY_TIMER_INVALID_TIMER;
-			}
-		}// >5
-		
-	}else if(app_connection_flag == APP_BLE_ADV && (g_check_btnCb_count%5) == 0){ // blink led		
-		powerOffCount = 0;
-		if(user_app_get_led_status() == 1 || g_check_btnCb_count%3 == 0)
-		{
-			user_app_disable_led();
-		}
-		else
-		{
-			user_app_enable_led(); 
-		}
-		
-	}else{
-		powerOffCount = 0;
-		arch_restore_sleep_mode();  // by aizj for debug
-		
-	}
-	// poll now?
-	if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
-	{
-		app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_check_button_cb);	
-	}
-	// poll btn calbrate
-	if(GPIO_GetPinStatus( GPIO_BUTTON_CALI_PORT, GPIO_BUTTON_CALI_PIN ) == 0){
-        cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY_CALI,cali_param_update_cb);	
-		app_easy_timer_cancel(app_check_button_used);
-	}	
+    static uint16_t powerOffCount = 0;  
+    static uint16_t g_check_btnCb_count = 0;
+    
+    g_check_btnCb_count++; 
+    if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0 && (app_connection_flag == APP_BLE_ADV)){
+        powerOffCount++;
+        user_app_enable_led();  
+        arch_force_active_mode();
+        if(powerOffCount > 5){
+            powerOffCount = 0;
+            user_app_disable_led();
+            if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)           
+            {
+                app_easy_timer_cancel(app_adv_data_update_timer_used);                  
+                app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;      
+            }               
+            
+            app_easy_gap_advertise_stop();
+            user_app_disable_periphs();
+            for(int i=0;i<10;i++)
+                arch_restore_sleep_mode();          
+            if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
+            {
+                app_easy_timer_cancel(app_check_button_used);
+                app_check_button_used = EASY_TIMER_INVALID_TIMER;
+            }
+        }// >5
+        
+    }else if(app_connection_flag == APP_BLE_ADV && (g_check_btnCb_count%5) == 0){ // blink led      
+        powerOffCount = 0;
+        if(user_app_get_led_status() == 1 || g_check_btnCb_count%3 == 0)
+        {
+            user_app_disable_led();
+        }
+        else
+        {
+            user_app_enable_led(); 
+        }
+        
+    }else{
+        powerOffCount = 0;
+        arch_restore_sleep_mode();  // by aizj for debug
+        
+    }
+     
+    // poll now?
+    if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
+    {
+        app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_check_button_cb);    
+    }
+    // poll btn calbrate
+    if(GPIO_GetPinStatus( GPIO_BUTTON_CALI_PORT, GPIO_BUTTON_CALI_PIN ) == 0){
+        //arch_force_active_mode();    
+        cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY_CALI,cali_param_update_cb); 
+
+    }  
+    
 }
 /*
-static void app_check_button_cb_old(void)
+static void app_check_button_cb(void)
 {
-	static uint16_t powerOffCount = 0;	
-	static uint16_t g_check_btnCb_count = 0;
-	
-	    g_check_btnCb_count++; 
-		if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0 && (app_connection_flag == APP_BLE_ADV))
-		{
-			powerOffCount++;
-			user_app_enable_led();	
-			arch_force_active_mode();
-			if(powerOffCount > 5)
-			{
-				powerOffCount = 0;
-				user_app_disable_led();
-				if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)			// lewis add
-				{
-					app_easy_timer_cancel(app_adv_data_update_timer_used);					
-					app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;		
-				}				
-				
-				app_easy_gap_advertise_stop();
-				user_app_disable_periphs();
-				for(int i=0;i<10;i++)
-				    arch_restore_sleep_mode();			
-				if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
-				{
-					app_easy_timer_cancel(app_check_button_used);
-					app_check_button_used = EASY_TIMER_INVALID_TIMER;
-				}
-			}
-			else
-			{
-				if(user_config_data.valid != 0x01)
-				{
-					if(user_config_data.flags != 0x02)
-					{
-						cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY,cali_param_update_cb);
-					}
-				}
-			}
-		}
-		else if(app_connection_flag == APP_BLE_ADV && (g_check_btnCb_count%5) == 0)
-		{ // blink led		
-			powerOffCount = 0;
-			if(user_config_data.flags == 0x01)
-			{
-				if(user_app_get_led_status() == 1 || g_check_btnCb_count%3 == 0)
-				{
-					user_app_disable_led();
-				}
-				else
-				{
-					user_app_enable_led(); 
-				}
-			}
-			
-		}
-		else
-		{
-			powerOffCount = 0;
-			arch_restore_sleep_mode();
-		}
-		// poll now?
-		if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
-		{
-			app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_check_button_cb);	
-		}
-		
-	
+    static uint16_t powerOffCount = 0;  
+    static uint16_t g_check_btnCb_count = 0;
+    
+        g_check_btnCb_count++; 
+        if(GPIO_GetPinStatus( GPIO_BUTTON_PORT, GPIO_BUTTON_PIN ) == 0 && (app_connection_flag == APP_BLE_ADV))
+        {
+            powerOffCount++;
+            user_app_enable_led();  
+            arch_force_active_mode();
+            if(powerOffCount > 5)
+            {
+                powerOffCount = 0;
+                user_app_disable_led();
+                if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)          // lewis add
+                {
+                    app_easy_timer_cancel(app_adv_data_update_timer_used);                  
+                    app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;      
+                }               
+                
+                app_easy_gap_advertise_stop();
+                user_app_disable_periphs();
+                for(int i=0;i<10;i++)
+                    arch_restore_sleep_mode();          
+                if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
+                {
+                    app_easy_timer_cancel(app_check_button_used);
+                    app_check_button_used = EASY_TIMER_INVALID_TIMER;
+                }
+            }
+            else
+            {
+                if(user_config_data.valid != 0x01)
+                {
+                    if(user_config_data.flags != 0x02)
+                    {
+                        cali_param_update_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY,cali_param_update_cb);
+                    }
+                }
+            }
+        }
+        else if(app_connection_flag == APP_BLE_ADV && (g_check_btnCb_count%5) == 0)
+        { // blink led      
+            powerOffCount = 0;
+            if(user_config_data.flags == 0x01)
+            {
+                if(user_app_get_led_status() == 1 || g_check_btnCb_count%3 == 0)
+                {
+                    user_app_disable_led();
+                }
+                else
+                {
+                    user_app_enable_led(); 
+                }
+            }
+            
+        }
+        else
+        {
+            powerOffCount = 0;
+            arch_restore_sleep_mode();
+        }
+        // poll now?
+        if(app_check_button_used != EASY_TIMER_INVALID_TIMER)
+        {
+            app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_check_button_cb);    
+        }
+        
+    
 }
 */
 /**
@@ -456,7 +458,7 @@ static void app_button_press_cb(void)
         arch_ble_force_wakeup();
         arch_ble_ext_wakeup_off();
         app_easy_wakeup();
-		wakeup_led_ctrl_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_wakeup_led_ctrl_cb);
+        wakeup_led_ctrl_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY,app_wakeup_led_ctrl_cb);
     }
 }
 
@@ -471,12 +473,12 @@ static void app_button_enable(void)
     app_easy_wakeup_set(app_wakeup_cb);
     wkupct_register_callback(app_button_press_cb);
 //    if (GPIO_GetPinStatus(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN))
-		{
+        {
     wkupct_enable_irq(WKUPCT_PIN_SELECT(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN), // select pin (GPIO_BUTTON_PORT, GPIO_BUTTON_PIN)
                       WKUPCT_PIN_POLARITY(GPIO_BUTTON_PORT, GPIO_BUTTON_PIN, WKUPCT_PIN_POLARITY_LOW), // polarity low
                                           1, // 1 event
                                           40); // debouncing time = 0
-		}
+        }
 }
 
 void user_app_init(void)
@@ -513,7 +515,7 @@ void user_app_init(void)
 }
 //void user_app_going_to_sleep(sleep_mode_t sleep_mode)
 //{
-//	user_app_disable_led();
+//  user_app_disable_led();
 //}
 
 /**
@@ -553,7 +555,7 @@ static void app_add_ad_struct(struct gapm_start_advertise_cmd *cmd, void *ad_str
 void user_app_adv_start(void)
 {
     // Schedule the next advertising data update
-	app_connection_flag = APP_BLE_ADV;
+    app_connection_flag = APP_BLE_ADV;
     app_adv_data_update_timer_used = app_easy_timer(APP_ADV_DATA_UPDATE_TO, adv_data_update_timer_cb);
 
     struct gapm_start_advertise_cmd* cmd;
@@ -574,12 +576,12 @@ void user_app_adv_start(void)
 #endif
 
     // Enable deep sleep
-//    arch_set_deep_sleep();				
-    arch_set_extended_sleep();				// lewis add		
+//    arch_set_deep_sleep();                
+    arch_set_extended_sleep();              // lewis add        
 
     app_easy_gap_undirected_advertise_start();
-	
-	app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY, app_check_button_cb);
+    
+    app_check_button_used = app_easy_timer(APP_WAKEUP_LED_CTRL_TIMER_DELAY, app_check_button_cb);
 }
 
 #if (BLE_SPOTA_RECEIVER)
@@ -608,26 +610,26 @@ void on_spotar_status_change( const uint8_t spotar_event)
 
 void user_app_connection(uint8_t connection_idx, struct gapc_connection_req_ind const *param)
 {
-	app_connection_flag = APP_BLE_CONNECTED;
-	app_connection_flag2 = 1;
+    app_connection_flag = APP_BLE_CONNECTED;
+    app_connection_flag2 = 1;
     default_app_on_connection(connection_idx, param);
     if (app_env[connection_idx].conidx != GAP_INVALID_CONIDX)
     {
         app_connection_idx = connection_idx;
 
-				if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)		// lewis add
-				{
-					// Stop the advertising data update timer
-					app_easy_timer_cancel(app_adv_data_update_timer_used);
-					app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;
-				}			
-				
-				if(wakeup_led_ctrl_used != EASY_TIMER_INVALID_TIMER)
-				{
-					app_easy_timer_cancel(wakeup_led_ctrl_used);
-					wakeup_led_ctrl_used = EASY_TIMER_INVALID_TIMER; 
-				}				
-				
+                if(app_adv_data_update_timer_used != EASY_TIMER_INVALID_TIMER)      // lewis add
+                {
+                    // Stop the advertising data update timer
+                    app_easy_timer_cancel(app_adv_data_update_timer_used);
+                    app_adv_data_update_timer_used = EASY_TIMER_INVALID_TIMER;
+                }           
+                
+                if(wakeup_led_ctrl_used != EASY_TIMER_INVALID_TIMER)
+                {
+                    app_easy_timer_cancel(wakeup_led_ctrl_used);
+                    wakeup_led_ctrl_used = EASY_TIMER_INVALID_TIMER; 
+                }               
+                
 
         // Check if the parameters of the established connection are the preferred ones.
         // If not then schedule a connection parameter update request.
@@ -641,16 +643,16 @@ void user_app_connection(uint8_t connection_idx, struct gapc_connection_req_ind 
         }
         user_app_enable_periphs();
         arch_set_extended_sleep();
-		user_app_disable_led();
-		
+        user_app_disable_led();
+        
     }
 }
 
 void user_app_disconnect(struct gapc_disconnect_ind const *param)
 {
-	
-		app_connection_flag2 = 0;
-	
+    
+        app_connection_flag2 = 0;
+    
     // Cancel the parameter update request timer
     if (app_param_update_request_timer_used != EASY_TIMER_INVALID_TIMER)
     {
@@ -658,12 +660,12 @@ void user_app_disconnect(struct gapc_disconnect_ind const *param)
         app_param_update_request_timer_used = EASY_TIMER_INVALID_TIMER;
     }
 
-		if(app_check_button_used != EASY_TIMER_INVALID_TIMER)							// lewis add
-		{
-			app_easy_timer_cancel(app_check_button_used);
-			app_check_button_used = EASY_TIMER_INVALID_TIMER;
-		}			
-		
+        if(app_check_button_used != EASY_TIMER_INVALID_TIMER)                           // lewis add
+        {
+            app_easy_timer_cancel(app_check_button_used);
+            app_check_button_used = EASY_TIMER_INVALID_TIMER;
+        }           
+        
     uint8_t state = ke_state_get(TASK_APP);
 
     if ((state == APP_SECURITY) ||
@@ -883,18 +885,18 @@ void user_catch_rest_hndl(ke_msg_id_t const msgid,
 void user_app_adv_undirect_complete(const uint8_t status)
 {
     // Disable wakeup for BLE and timer events. Only external (GPIO) wakeup events can wakeup processor.
-	app_connection_flag = APP_BLE_TIMEOUT_IDLE;
+    app_connection_flag = APP_BLE_TIMEOUT_IDLE;
     if (status == GAP_ERR_CANCELED)
     {
-		user_app_disable_periphs();
-		user_app_disable_led();
+        user_app_disable_periphs();
+        user_app_disable_led();
         arch_ble_ext_wakeup_on();
 
-		if(app_check_button_used != EASY_TIMER_INVALID_TIMER)							// aizj add
-		{
-			app_easy_timer_cancel(app_check_button_used);
-			app_check_button_used = EASY_TIMER_INVALID_TIMER;
-		}	
+        if(app_check_button_used != EASY_TIMER_INVALID_TIMER)                           // aizj add
+        {
+            app_easy_timer_cancel(app_check_button_used);
+            app_check_button_used = EASY_TIMER_INVALID_TIMER;
+        }   
         // Configure wakeup button
         app_button_enable();
     }

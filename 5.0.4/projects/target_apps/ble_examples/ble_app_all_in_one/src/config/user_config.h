@@ -86,7 +86,7 @@
  * - ARCH_DEEP_SLEEP_ON
  ******************************************
  */
-const static sleep_state_t app_default_sleep_mode = ARCH_EXT_SLEEP_ON;//ARCH_SLEEP_OFF;//			// lewis add
+const static sleep_state_t app_default_sleep_mode = ARCH_EXT_SLEEP_ON; //ARCH_SLEEP_OFF;
 
 /*
  ****************************************************************************************
