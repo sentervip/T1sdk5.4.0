@@ -324,7 +324,7 @@ void user_app_adcval1_timer_cb_handler()
 	uint16_t sample = user_get_adc1();
 	if(user_config_data.adjData1)
 	{
-		tmp = sample * user_config_data.adjData1 + BODY_OFFSET;//4.21f;
+		tmp = sample * user_config_data.adjData1 ;
 	}
 	else
 	{
@@ -336,18 +336,21 @@ void user_app_adcval1_timer_cb_handler()
 //	{
 //		tmp1 = tmp;
 //	}
+	
 	tmp -= tmp1;	
 	tmp1 += tmp * fcoe;	
+	//tmp1 = tmp;
 	user_tempadj_data.curTemp = user_config_data.adjData0 + tmp1 / 100.0f ; 
+	rtemp = tmp1;
+	//rtemp = user_app_estimate_temp(tmp1);
 	
-	rtemp = user_app_estimate_temp(tmp1);
-	
-	//if(tmp1 > 0x0f0a && ke_state_get(TASK_APP) == APP_CONNECTED) // >38.50 C
+	//if(tmp1 > 0x0f0a && ke_state_get(TASK_APP) == APP_CONNECTED) // 
 	//		app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
 
 	/*uint16_t adc_sample = 3751+kk;//user_get_adc1();
 	if(++kk > 100)
 		kk = 0;*/
+	//rtemp +=  BODY_OFFSET;
 	len = user_hex2utf8(rtemp,2,data);
 	
     req->conhdl = app_env->conhdl;
@@ -729,9 +732,9 @@ void user_app_enable_periphs(void)
 		memset(&user_config_data,0,sizeof(user_config_data));
 		memset(&user_tempadj_data,0,sizeof(user_tempadj_data));
 		
-		user_config_data.adjData1 = 4.238f;//工厂校准数据
+		user_config_data.adjData1 = FACTORY_CALI;//工厂校准数据
 		user_tempadj_data.adjData = 1.0f;
-		user_config_data.adjTemp = 38.00f;//用户校准温度数据：38
+		user_config_data.adjTemp = FACTORY_TEMPRATURE_CALI;//校准温度基准
 //		bond_usercfgdata_store_flash();
 //		bond_useradjdata_store_flash();  
 	}
