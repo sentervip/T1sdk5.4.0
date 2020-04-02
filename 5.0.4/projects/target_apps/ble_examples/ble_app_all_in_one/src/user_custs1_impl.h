@@ -47,7 +47,7 @@
 #define A40     -23.6205         // 40-30???????
 #define A50      23.0105         // 50-40???????
 #define BODY_OFFSET  1.5
-#define FACTORY_CALI 4.266
+#define FACTORY_CALI 4.238
 #define FACTORY_TEMPRATURE_CALI 38
 #define FACTORY_ERROR_CALI 0.001
 enum

@@ -194,7 +194,7 @@ static void cali_param_update_cb(void)
     uint8_t initFlag = 0,states = 1,startCaliFalg = 0;
     float tmp1 = 0,varA = 0,varB = 100;
     uint16_t len_count = 0,sample,dataSize = 100;
-    float tmp,fcoe = 0.1f;
+    float tmp,fcoe = 0.005f;
     uint32_t stateCnt = 800000,caliCnt = 0;
     
     

@@ -350,7 +350,7 @@ void user_app_adcval1_timer_cb_handler()
 	/*uint16_t adc_sample = 3751+kk;//user_get_adc1();
 	if(++kk > 100)
 		kk = 0;*/
-	//rtemp +=  BODY_OFFSET;
+	rtemp +=  BODY_OFFSET;
 	len = user_hex2utf8(rtemp,2,data);
 	
     req->conhdl = app_env->conhdl;
