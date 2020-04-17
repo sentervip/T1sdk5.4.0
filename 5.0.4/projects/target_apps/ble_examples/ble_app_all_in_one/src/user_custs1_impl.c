@@ -322,13 +322,10 @@ void user_app_adcval1_timer_cb_handler()
 	float tmp,fcoe = 0.1f;
 	//float adjcfg = user_config_data.adjData1 / 1000.0f;
 	uint16_t sample = user_get_adc1();
-	if(user_config_data.adjData1)
-	{
+	if(user_config_data.adjData1){
 		tmp = sample * user_config_data.adjData1 ;
-	}
-	else
-	{
-		tmp = sample;
+	}else{
+	    tmp = sample;
 	}
 
 //	fcoe = user_config_data.flags == 0x00 ? 0.5f : 0.1f;
@@ -336,7 +333,9 @@ void user_app_adcval1_timer_cb_handler()
 //	{
 //		tmp1 = tmp;
 //	}
-	
+	if(tmp1 == 0){
+	   tmp1 = tmp;
+	}
 	tmp -= tmp1;	
 	tmp1 += tmp * fcoe;	
 	//tmp1 = tmp;
@@ -360,7 +359,8 @@ void user_app_adcval1_timer_cb_handler()
 
     ke_msg_send(req);
 
-    if (ke_state_get(TASK_APP) == APP_CONNECTED)
+    //if (ke_state_get(TASK_APP) == APP_CONNECTED)
+	if(app_connection_flag2 == APP_BLE_CONNECTED)
     {
         // Set it once again until Stop command is received in Control Characteristic
         timer_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_adcval1_timer_cb_handler);

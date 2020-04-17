@@ -43,9 +43,9 @@
  */
 #define EFF_TEMP 3300 //33度以上为有效温度	
 #define EXF_TEMP 10 //0.1度
-#define A30      9.4545          // 30-20???????
-#define A40     -23.6205         // 40-30???????
-#define A50      23.0105         // 50-40???????
+#define A30      9.4545          // 30-20温度变化参数
+#define A40     -23.6205         // 40-30温度变化参数
+#define A50      23.0105         // 50-40温度变化参数
 #define BODY_OFFSET  1.5
 #define FACTORY_CALI 4.238
 #define FACTORY_TEMPRATURE_CALI 38

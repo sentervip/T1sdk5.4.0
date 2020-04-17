@@ -69,7 +69,7 @@
  * FUNCTION DECLARATIONS
  ****************************************************************************************
  */
-
+extern uint8_t app_connection_flag,app_connection_flag2;
 /**
  ****************************************************************************************
  * @brief Application initialization function.
