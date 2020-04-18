@@ -261,7 +261,7 @@ void user_custs1_indicateable_ind_cfm_handler(ke_msg_id_t const msgid,
 {
 }
 */
-
+#if 0
 int16_t user_app_estimate_temp(int16_t inTemp)
 {
 	static uint8_t initFlag = 0,statFlag = 0,stableFlag = 0;
@@ -307,6 +307,7 @@ int16_t user_app_estimate_temp(int16_t inTemp)
 	}
 	return result;
 }
+#endif
 void user_app_adcval1_timer_cb_handler()
 {
     struct custs1_val_ntf_req* req = KE_MSG_ALLOC_DYN(CUSTS1_VAL_NTF_REQ,
@@ -315,41 +316,36 @@ void user_app_adcval1_timer_cb_handler()
                                                       custs1_val_ntf_req,
                                                       DEF_CUST1_ADC_VAL_1_CHAR_LEN);
 
-    // ADC value to be sampled
-    //static uint8_t kk =0;
 	uint8_t data[6] = {0,0,0,0,0,0},len;
-	static uint16_t tmp1 = 0,rtemp;
-	float tmp,fcoe = 0.1f;
-	//float adjcfg = user_config_data.adjData1 / 1000.0f;
+	uint16_t rtemp =0;    
+	float val = 0,tmp =0;
+	static float tmp1=0;
+
+	//1 get adc
 	uint16_t sample = user_get_adc1();
 	if(user_config_data.adjData1){
 		tmp = sample * user_config_data.adjData1 ;
 	}else{
 	    tmp = sample;
 	}
-
-//	fcoe = user_config_data.flags == 0x00 ? 0.5f : 0.1f;
-//	if(tmp1 == 0)
-//	{
-//		tmp1 = tmp;
-//	}
 	if(tmp1 == 0){
 	   tmp1 = tmp;
 	}
 	tmp -= tmp1;	
-	tmp1 += tmp * fcoe;	
-	//tmp1 = tmp;
-	user_tempadj_data.curTemp = user_config_data.adjData0 + tmp1 / 100.0f ; 
-	rtemp = tmp1;
-	//rtemp = user_app_estimate_temp(tmp1);
+	tmp1 += tmp * 0.1;	
+	user_tempadj_data.curTemp = tmp1 / 100.0f ; 
 	
-	//if(tmp1 > 0x0f0a && ke_state_get(TASK_APP) == APP_CONNECTED) // 
-	//		app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_pwm_timer_cb_handler);
-
-	/*uint16_t adc_sample = 3751+kk;//user_get_adc1();
-	if(++kk > 100)
-		kk = 0;*/
-	rtemp +=  BODY_OFFSET;
+	//2 Ó³Éä¹ØÏµÇúÏß,y=0.0754x^2 -4.6616*x+106.83  [31,40]
+	if(user_tempadj_data.curTemp > 31.0  ){
+	  val = (0.0754 * user_tempadj_data.curTemp * user_tempadj_data.curTemp) - (4.6616 *user_tempadj_data.curTemp) + 106.83 ;
+	  rtemp = (uint16_t)(val *100);
+	}else{
+	    rtemp = (uint16_t)tmp1;
+	}	
+	
+	//3 send to app
+	//rtemp = user_app_estimate_temp(tmp1);
+	//rtemp +=  BODY_OFFSET;	
 	len = user_hex2utf8(rtemp,2,data);
 	
     req->conhdl = app_env->conhdl;
@@ -360,7 +356,7 @@ void user_app_adcval1_timer_cb_handler()
     ke_msg_send(req);
 
     //if (ke_state_get(TASK_APP) == APP_CONNECTED)
-	if(app_connection_flag2 == APP_BLE_CONNECTED)
+	if(app_connection_flag2 == APP_BLE_CONNECTED)//bugs: no data send to app
     {
         // Set it once again until Stop command is received in Control Characteristic
         timer_used = app_easy_timer(APP_PERIPHERAL_CTRL_TIMER_DELAY, user_app_adcval1_timer_cb_handler);
