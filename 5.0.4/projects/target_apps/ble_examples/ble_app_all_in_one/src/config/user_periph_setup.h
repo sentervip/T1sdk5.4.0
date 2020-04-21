@@ -169,7 +169,7 @@
     #define GPIO_BUTTON_CALI_PIN   GPIO_PIN_5
     #define GPIO_LED_PORT          GPIO_PORT_1
     #define GPIO_LED_PIN           GPIO_PIN_0
-#if 1   //2019 hw board
+#if 0   //2019 hw board
    // #define GPIO_PWM_PORT     GPIO_PORT_1
    // #define GPIO_PWM_PIN      GPIO_PIN_1
 
